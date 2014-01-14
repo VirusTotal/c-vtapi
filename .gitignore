@@ -34,3 +34,4 @@ vgcore.*
 Doxyfile
 INSTALL
 .libs/
+ar-lib
