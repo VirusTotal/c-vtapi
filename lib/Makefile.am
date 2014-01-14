@@ -1,0 +1,15 @@
+SUBDIRS = .
+
+# CURRENT_USER=$(shell whoami)
+# CURRENT_HOST=$(shell hostname)
+
+
+lib_LTLIBRARIES = libvtcapi.la
+
+#include_HEADERS = 
+
+libvtcapi_la_CFLAGS  = -g3 -Wall -Werror 
+libvtcapi_la_SOURCES = VtObject.c VtApiPage.c VtFileScan.c VtDebug.c VtResponse.c
+
+libvtcapi_la_LDFLAGS = -version-info 1  -ljansson
+

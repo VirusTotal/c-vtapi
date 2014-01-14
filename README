@@ -1,0 +1,22 @@
+Runtime Dependencies
+	* curl
+	* janson
+
+Compiling Dependencies
+	* automake, autoconf  (might be autotools package on your platform)
+	* gcc
+	* libtool
+
+
+to compile:
+
+autoreconf -fi
+./configure
+make
+
+See Examples in examples/
+
+
+To generate developer doxygen docs in doc/ dir:
+make doxygen-doc
+
