@@ -27,12 +27,6 @@ struct VtResponse
 	VT_OBJECT_COMMON
 	int response_code;
 	char *verbose_msg;
-	char *permalink;
-	char *scan_id;
-	char *sha1;
-	char *sha256;
-	char *md5;
-	char *resource;
 };
 
 
@@ -68,23 +62,6 @@ int VtResponse_destructor(struct VtObject *obj)
 	if (response->verbose_msg)
 		free(response->verbose_msg);
 
-	if (response->permalink)
-		free(response->permalink);
-	
-	if (response->scan_id)
-		free(response->scan_id);
-	
-	if (response->sha1)
-		free(response->sha1);
-
-	if (response->sha256)
-		free(response->sha256);
-	
-	if (response->md5)
-		free(response->md5);
-	
-	if (response->resource)
-		free(response->resource);
 	
 	return 0;
 }
