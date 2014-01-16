@@ -18,5 +18,8 @@ void VtFileScan_put(struct VtFileScan **FileScan);
 
 void VtFileScan_setApiKey(struct VtFileScan *file_scan, const char *api_key);
 int VtFileScan_scan(struct VtFileScan *file_scan, const char *file_path);
+int VtFileScan_rescanHash(struct VtFileScan *file_scan, const char *hash);
+int VtFileScan_report(struct VtFileScan *file_scan, const char *hash);
 
+struct VtResponse * VtFileScan_getResponse(struct VtFileScan *file_scan);
 #endif

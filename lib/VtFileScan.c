@@ -21,6 +21,7 @@
 
 #include "VtObject.h"
 #include "VtApiPage.h"
+#include "VtResponse.h"
 
 #include "vtcapi_common.h"
 
@@ -136,6 +137,13 @@ void VtFileScan_setApiKey(struct VtFileScan *file_scan, const char *api_key)
 	file_scan->api_key = strdup(api_key);
 }
 
+
+struct VtResponse * VtFileScan_getResponse(struct VtFileScan *file_scan)
+{
+	VtResponse_get(file_scan->response);
+	return file_scan->response;
+}
+
 int VtFileScan_scan(struct VtFileScan *file_scan, const char *file_path)
 {
 
@@ -145,9 +153,7 @@ int VtFileScan_scan(struct VtFileScan *file_scan, const char *file_path)
 	struct curl_httppost *formpost=NULL;
 	struct curl_httppost *lastptr=NULL;
 	struct curl_slist *headerlist=NULL;
-	json_t *json_data = NULL,  *ack_json = NULL;
 	static const char header_buf[] = "Expect:";
-	json_error_t json_error;
 	
 	curl = curl_easy_init();
 	if (!curl) {
@@ -196,12 +202,9 @@ int VtFileScan_scan(struct VtFileScan *file_scan, const char *file_path)
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
 	curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost); // set form
 
-
-	// set size of upload
-// 	curl_easy_setopt(curl, CURLOPT_INFILESIZE_LARGE, (curl_off_t)file_info.st_size);
-	
-	/* enable verbose for easier tracing */ 
-	curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+	/* enable verbose for easier tracing */
+    if (debug_level)
+		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 	
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_cb); // callback for data
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, file_scan); // user arg
@@ -217,27 +220,15 @@ int VtFileScan_scan(struct VtFileScan *file_scan, const char *file_path)
 	}
 	
 	DBG(1, "Page:\n%s\n",file_scan->buffer);
-	// 	fclose(fp);
-	
-	json_data =json_loads(file_scan->buffer, 0, &json_error);
-	if (!json_data) {
-		ERROR("Parsing\n");
-		ret = -1;
+
+	file_scan->response = VtResponse_new();
+	ret = VtResponse_fromJSONstr(file_scan->response, file_scan->buffer);
+	if (ret) {
+		ERROR("Parsing JSON\n");
 		goto cleanup;
 	}
 	
-	ack_json = json_object_get(json_data, "ack");
-	if (ack_json) {
-	} else {
-		// Parse error
-		ret = -1;
-	}
-	
-	cleanup:
-	if (json_data) {
-		json_decref(json_data);
-	}
-
+cleanup:
 	/* always cleanup */
 	curl_easy_cleanup(curl);
 
@@ -249,3 +240,185 @@ int VtFileScan_scan(struct VtFileScan *file_scan, const char *file_path)
 	
 	return ret;
 }
+
+
+int VtFileScan_rescanHash(struct VtFileScan *file_scan, const char *hash)
+{
+	
+	CURL *curl;
+	CURLcode res;
+	int ret = 0;
+	struct curl_httppost *formpost=NULL;
+	struct curl_httppost *lastptr=NULL;
+	struct curl_slist *headerlist=NULL;
+	static const char header_buf[] = "Expect:";
+	
+	curl = curl_easy_init();
+	if (!curl) {
+		ERROR("init curl\n");
+		goto cleanup;
+	}
+	// initialize custom header list (stating that Expect: 100-continue is not wanted
+	headerlist = curl_slist_append(headerlist, header_buf);
+	
+	DBG(1, "hash to rescan'%s'\n", hash);
+	DBG(1, "Api Key =  '%s'\n", file_scan->api_key);
+	
+	ret = curl_formadd(&formpost,
+					   &lastptr,
+					   CURLFORM_COPYNAME, "resource",
+					   CURLFORM_COPYCONTENTS,  hash,
+					   CURLFORM_END);
+	if (ret)
+		ERROR("Adding hash %s\n", hash);
+	
+	
+	ret = curl_formadd(&formpost,
+					   &lastptr,
+					   CURLFORM_COPYNAME, "apikey",
+					   CURLFORM_COPYCONTENTS, file_scan->api_key,
+					   CURLFORM_END);
+	
+	if (ret)
+		ERROR("Adding key\n");
+	
+	curl_easy_setopt(curl, CURLOPT_URL, VT_API_BASE_URL "file/rescan");
+	
+#ifdef DISABLE_HTTPS_VALIDATION
+	curl_easy_setopt(curl,CURLOPT_SSL_VERIFYPEER,0L); // disable validation
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+#endif
+	
+	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
+	curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost); // set form
+	
+	/* enable verbose for easier tracing */
+    if (debug_level)
+		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+	
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_cb); // callback for data
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, file_scan); // user arg
+	
+	
+	/* Perform the request, res will get the return code */
+	res = curl_easy_perform(curl);
+	DBG(1, "Perform done\n");
+	/* Check for errors */
+	if(res != CURLE_OK) {
+		ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+		goto cleanup;
+	}
+	
+	DBG(1, "Page:\n%s\n",file_scan->buffer);
+	
+	file_scan->response = VtResponse_new();
+	ret = VtResponse_fromJSONstr(file_scan->response, file_scan->buffer);
+	if (ret) {
+		ERROR("Parsing JSON\n");
+		goto cleanup;
+	}
+	
+cleanup:
+	/* always cleanup */
+	curl_easy_cleanup(curl);
+	
+	if (formpost)
+		curl_formfree(formpost);  // cleanup the formpost chain
+	
+	if (headerlist)
+		curl_slist_free_all (headerlist); // free headers
+	
+	return ret;
+}
+
+
+int VtFileScan_report(struct VtFileScan *file_scan, const char *hash)
+{
+	
+	CURL *curl;
+	CURLcode res;
+	int ret = 0;
+	struct curl_httppost *formpost=NULL;
+	struct curl_httppost *lastptr=NULL;
+	struct curl_slist *headerlist=NULL;
+	static const char header_buf[] = "Expect:";
+	
+	curl = curl_easy_init();
+	if (!curl) {
+		ERROR("init curl\n");
+		goto cleanup;
+	}
+	// initialize custom header list (stating that Expect: 100-continue is not wanted
+	headerlist = curl_slist_append(headerlist, header_buf);
+	
+	DBG(1, "hash to rescan'%s'\n", hash);
+	DBG(1, "Api Key =  '%s'\n", file_scan->api_key);
+	
+	ret = curl_formadd(&formpost,
+					   &lastptr,
+					   CURLFORM_COPYNAME, "resource",
+					   CURLFORM_COPYCONTENTS,  hash,
+					   CURLFORM_END);
+	if (ret)
+		ERROR("Adding hash %s\n", hash);
+	
+	
+	ret = curl_formadd(&formpost,
+					   &lastptr,
+					   CURLFORM_COPYNAME, "apikey",
+					   CURLFORM_COPYCONTENTS, file_scan->api_key,
+					   CURLFORM_END);
+	
+	if (ret)
+		ERROR("Adding key\n");
+	
+	curl_easy_setopt(curl, CURLOPT_URL, VT_API_BASE_URL "file/report");
+	
+#ifdef DISABLE_HTTPS_VALIDATION
+	curl_easy_setopt(curl,CURLOPT_SSL_VERIFYPEER,0L); // disable validation
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+#endif
+	
+	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
+	curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost); // set form
+	
+	/* enable verbose for easier tracing */
+    if (debug_level)
+		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_cb); // callback for data
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, file_scan); // user arg
+
+	
+	/* Perform the request, res will get the return code */
+	res = curl_easy_perform(curl);
+	DBG(1, "Perform done\n");
+	/* Check for errors */
+	if(res != CURLE_OK) {
+		ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+		goto cleanup;
+	}
+	
+	DBG(1, "Page:\n%s\n",file_scan->buffer);
+	
+	file_scan->response = VtResponse_new();
+	ret = VtResponse_fromJSONstr(file_scan->response, file_scan->buffer);
+	if (ret) {
+		ERROR("Parsing JSON\n");
+		goto cleanup;
+	}
+	
+cleanup:
+	/* always cleanup */
+	curl_easy_cleanup(curl);
+	
+	if (formpost)
+		curl_formfree(formpost);  // cleanup the formpost chain
+	
+	if (headerlist)
+		curl_slist_free_all (headerlist); // free headers
+	
+	return ret;
+}
+
+

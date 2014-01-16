@@ -4,8 +4,10 @@
 
 #include <unistd.h>
 #include <getopt.h>
+#include <jansson.h>
 
 #include "VtFileScan.h"
+#include "VtResponse.h"
 
 
 #define DBG(FMT,ARG...) fprintf(stderr, "%s:%d: " FMT, __FUNCTION__, __LINE__, ##ARG); 
@@ -23,6 +25,8 @@ int main(int argc, char * const *argv)
 	int c;
 	int ret = 0;
 	struct VtFileScan *file_scan;
+    struct VtResponse *response;
+    char *str = NULL;
 	char *api_key = NULL;
 
 	if (argc < 2) {
@@ -36,6 +40,8 @@ int main(int argc, char * const *argv)
 		int option_index = 0;
 		static struct option long_options[] = {
 			{"filescan",  required_argument,    0,  'f' },
+            {"rescan",  required_argument,    0,  'r' },
+            {"report",  required_argument,    0,  'i' },
 			{"apikey",  required_argument,     0,  'a'},
 			{"verbose", optional_argument,  0,  'v' },
 			{"help", optional_argument,  0,  'h' },
@@ -61,10 +67,58 @@ int main(int argc, char * const *argv)
 				}
 
 				ret = VtFileScan_scan(file_scan, optarg);
+                DBG("Filescan ret=%d\n", ret);
 				if (ret) {
 					printf("Error: %d \n", ret);
+				} else {
+                    response = VtFileScan_getResponse(file_scan);
+                    str = VtResponse_toJSONstr(response, VT_JSON_FLAG_INDENT);
+                    if (str) {
+                        printf("Response:\n%s\n", str);
+                        free(str);
+                    }
+                    VtResponse_put(&response);
+                }
+				break;
+            case 'r':
+				if (!api_key) {
+					printf("Must set --apikey first\n");
+					exit(1);
 				}
-
+                
+				ret = VtFileScan_rescanHash(file_scan, optarg);
+                DBG("rescan ret=%d\n", ret);
+				if (ret) {
+					printf("Error: %d \n", ret);
+				} else {
+                    response = VtFileScan_getResponse(file_scan);
+                    str = VtResponse_toJSONstr(response, VT_JSON_FLAG_INDENT);
+                    if (str) {
+                        printf("Response:\n%s\n", str);
+                        free(str);
+                    }
+                    VtResponse_put(&response);
+                }
+				break;
+            case 'i':
+				if (!api_key) {
+					printf("Must set --apikey first\n");
+					exit(1);
+				}
+                
+				ret = VtFileScan_report(file_scan, optarg);
+                DBG("rescan ret=%d\n", ret);
+				if (ret) {
+					printf("Error: %d \n", ret);
+				} else {
+                    response = VtFileScan_getResponse(file_scan);
+                    str = VtResponse_toJSONstr(response, VT_JSON_FLAG_INDENT);
+                    if (str) {
+                        printf("Response:\n%s\n", str);
+                        free(str);
+                    }
+                    VtResponse_put(&response);
+                }
 				break;
 			case 'h':
 				print_usage(argv[0]);
