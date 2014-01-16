@@ -1,8 +1,6 @@
 #define _GNU_SOURCE
 
 
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -14,8 +12,10 @@
 #include <time.h>
 #include <stdbool.h>
 
-#include "VtApiPage.h"
+
 #include "vtcapi_common.h"
+#include "VtApiPage.h"
+#include "VtResponse.h"
 
 
 /**
@@ -51,6 +51,10 @@ int VtApiPage_destructor(struct VtObject *obj)
 
 	if (page->api_key)
 		free(page->api_key);
+    
+    if (page->response) {
+        VtResponse_put(&page->response);
+    }
 
 	return 0;
 }
