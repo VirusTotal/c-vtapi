@@ -69,6 +69,10 @@ fi
 AC_SUBST(JANSSON_INCLUDE)
 AC_SUBST(JANSSON_LDFLAGS)
 
+AC_SEARCH_LIBS([json_object], [jansson],  [], [
+  AC_MSG_ERROR([unable to find the jansson library])
+])
+
 
 
 AC_ARG_ENABLE(examples,
