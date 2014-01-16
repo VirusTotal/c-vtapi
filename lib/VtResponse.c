@@ -19,6 +19,7 @@
 
 
 #include "VtObject.h"
+#include "VtResponse.h"
 
 #include "vtcapi_common.h"
 
@@ -27,6 +28,8 @@ struct VtResponse
 	VT_OBJECT_COMMON
 	int response_code;
 	char *verbose_msg;
+    json_error_t json_error;
+	json_t *json_data;
 };
 
 
@@ -106,9 +109,15 @@ void VtResponse_get(struct VtResponse *VtResponse)
 }
 
 /** put a reference counter */
-void VtResponse_put(struct VtResponse **VtResponse)
+void VtResponse_put(struct VtResponse **resp)
 {
-	VtObject_put((struct VtObject**) VtResponse);
+    struct VtResponse *response = *resp;
+    
+    if (response->json_data) {
+        json_decref(response->json_data);
+    }
+    
+	VtObject_put((struct VtObject**) resp);
 }
 
 #define VT_RESPONSE_DECLARE_STR_GET(fn_name, member_name) char * VtResponse_##fn_name##(struct VtResponse *response, char *buf, int buf_siz) \
@@ -124,30 +133,63 @@ char * VtResponse_getVerboseMsg(struct VtResponse *response, char *buf, int buf_
 
 
 
-int VtResponse_getResponseCode(struct VtResponse *response)
+int VtResponse_getIntValue(struct VtResponse *response, const char *key, int *value)
 {
-	return response->response_code;
+    json_t *jdata;
+	
+	if (!response->json_data) {
+		ERROR("not set\n");
+		return -1;
+	}
+
+	jdata = json_object_get(response->json_data, key);
+	if (!jdata) {
+		ERROR("missing key '%s'\n", key)
+		return -1;
+	}
+	*value = json_integer_value(jdata);
+
+    return 0; // OK
+}
+
+char *VtResponse_getString(struct VtResponse *response, const char *key)
+{
+    json_t *jdata;
+	const char *str;
+	
+	if (!response->json_data) {
+		ERROR("not set\n");
+		return NULL;
+	}
+	
+	jdata = json_object_get(response->json_data, key);
+	if (!jdata) {
+		ERROR("missing key '%s'\n", key)
+		return NULL;
+	}
+	str = json_string_value(jdata);
+	if (!str) {
+		return NULL;
+	}
+	return strdup(str);
+}
+
+int VtResponse_getResponseCode(struct VtResponse *response, int *code)
+{
+    return VtResponse_getIntValue(response, "response_code", code);
 }
 
 
-json_t * VtResponse_toJSON(struct VtResponse *response)
+char * VtResponse_toJSONstr(struct VtResponse *response, int flags)
 {
-	json_t *data_jobj = json_object();
-
-	json_object_set_new(data_jobj, "response_code", json_integer(response->response_code));
-	json_object_set_new(data_jobj, "verbose_msg",  json_string(response->verbose_msg));
-
-	return data_jobj;
+    char *s;
 	
-}
+    if (debug_level || (flags | VT_JSON_FLAG_INDENT) )
+        s = json_dumps(response->json_data, JSON_INDENT(4));
+    else
+        s = json_dumps(response->json_data, JSON_COMPACT);
 
-char * VtResponse_toJSONstr(struct VtResponse *response)
-{
-	json_t *json = VtResponse_toJSON(response);
-	
-	json_dumps(json, (debug_level > 0) ? JSON_INDENT(4) : JSON_COMPACT);
-	json_decref(json);
-	return NULL;
+	return s;
 }
 
 int VtResponse_fromJSON(struct VtResponse *response, json_t *json)
@@ -173,13 +215,16 @@ int VtResponse_fromJSON(struct VtResponse *response, json_t *json)
 
 int VtResponse_fromJSONstr(struct VtResponse *response, const char *json_str)
 {
-	json_error_t json_error;
-	json_t *json_data;
 	
-	json_data =json_loads(json_str, 0, &json_error);
-	if (!json_data) {
+	response->json_data =json_loads(json_str, 0, &response->json_error);
+	if (!response->json_data) {
 		ERROR("Parsing\n");
 		return -1;
 	}
 	return 0;
+}
+
+json_t * VtResponse_getJanssonObj(struct VtResponse *response, const char *json_str)
+{
+	return response->json_data;
 }
