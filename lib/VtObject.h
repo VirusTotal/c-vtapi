@@ -34,8 +34,7 @@ DBG(3, "UNLOCKED %p\n", obj); } while(0)
 
 // flags for toJSON()  functions
 
-// debug flag
-#define VT_JSON_FLAG_DEBUG  1 << 0
+
 
 
 
