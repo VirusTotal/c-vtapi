@@ -14,9 +14,15 @@ autoreconf -fi
 ./configure
 make
 
-See Examples in examples/
-
 
 To generate developer doxygen docs in doc/ dir:
 make doxygen-doc
+
+
+
+See Examples in examples/
+For some example test programs using API.
+
+url --apikey=YOUR_KEY --scan http://youtube.com
+url --apikey=YOUR_KEY --report http://youtube.com
 
