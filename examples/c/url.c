@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <getopt.h>
 #include <jansson.h>
+#include <stdbool.h>
 
 #include "VtUrl.h"
 #include "VtResponse.h"
@@ -14,10 +15,12 @@
 
 void print_usage(const char *prog_name)
 {
-	printf("%s < --apikey YOUR_API_KEY >   [ --filescan FILE1 ] [ --filescan FILE2 ]\n", prog_name);
+	printf("%s < --apikey YOUR_API_KEY >  [ --all-info ] [ --report-scan ]  [ --report URL ] [ --scan URL ]\n", prog_name);
 	printf("  --apikey YOUR_API_KEY   Your virus total API key.  This arg 1st \n");
-	printf("  --scan URL              URL to scan.   Note may specify this multiple times. \n");
-	printf("  --report URL            URL to report.
+	printf("  --all-info              When doing a report, set allinfo flag\n");
+	printf("  --report-scan           When doing a report, set scan flag\n");
+	printf("  --scan URL              URL to scan. \n");
+	printf("  --report URL            URL to report.\n");
 
 }
 
@@ -29,6 +32,8 @@ int main(int argc, char * const *argv)
     struct VtResponse *response;
     char *str = NULL;
 	char *api_key = NULL;
+	bool all_info = false;
+	bool report_scan = false;
 
 	if (argc < 2) {
 		print_usage(argv[0]);
@@ -43,6 +48,8 @@ int main(int argc, char * const *argv)
 			{"scan",  required_argument,    0,  's' },
             {"report",  required_argument,    0,  'r' },
 			{"apikey",  required_argument,     0,  'a'},
+			{"report-scan",  no_argument,     0,  '1'},
+			{"all-info",  no_argument,     0,  'i'},
 			{"verbose", optional_argument,  0,  'v' },
 			{"help", optional_argument,  0,  'h' },
 			{0,         0,                 0,  0 }
@@ -80,13 +87,19 @@ int main(int argc, char * const *argv)
                     VtResponse_put(&response);
                 }
 				break;
+			case '1':
+				report_scan = true;
+				break;
+			case 'i':
+				all_info = true;
+				break;
 			case 'r':
 				if (!api_key) {
 					printf("Must set --apikey first\n");
 					exit(1);
 				}
                 
-				ret = VtUrl_report(file_scan, optarg);
+				ret = VtUrl_report(file_scan, optarg, all_info, report_scan);
                 DBG("rescan ret=%d\n", ret);
 				if (ret) {
 					printf("Error: %d \n", ret);
