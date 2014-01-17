@@ -104,3 +104,36 @@ void VtApiPage_put(struct VtApiPage **page)
 	VtObject_put((struct VtObject**) page);
 }
 
+
+void VtApiPage_setApiKey(struct VtApiPage *api, const char *key)
+{
+
+	if (api->api_key)
+		free(api->api_key);
+
+	api->api_key = strdup(key);
+}
+
+size_t __VtApiPage_WriteCb( char *ptr, size_t size, size_t nmemb, void *userdata)
+{
+	size_t bytes = size * nmemb;  // total amount of data.
+	struct VtApiPage *page_hand = (struct VtApiPage *) userdata;
+	unsigned int new_buff_size = page_hand->buffer_size + bytes;
+
+	DBG(1, "Recv %zd bytes\n", bytes);
+
+	page_hand->buffer = realloc(page_hand->buffer, new_buff_size+1);
+
+	if (!page_hand->buffer) {
+		ERROR("Out of memory\n");
+		return 0;
+	}
+
+	page_hand->buffer[new_buff_size] = 0; // null term
+	memcpy(page_hand->buffer + page_hand->buffer_size, ptr, bytes);
+
+
+	page_hand->buffer_size = new_buff_size;
+	return bytes;
+}
+

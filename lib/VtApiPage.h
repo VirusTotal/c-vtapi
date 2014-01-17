@@ -54,7 +54,11 @@ struct VtApiPage* VtApiPage_new(void);
 
 void VtApiPage_put(struct VtApiPage **);
 void VtApiPage_get(struct VtApiPage *);
+	
+void VtApiPage_setApiKey(struct VtApiPage *api, const char *key);
 
+size_t __VtApiPage_WriteCb( char *ptr, size_t size, size_t nmemb, void *userdata);
+	
 #ifdef  __cplusplus
 }
 #endif /*cplusplus*/

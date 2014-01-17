@@ -74,7 +74,6 @@ static struct VtObject_ops obj_ops = {
 	.obj_size           = sizeof(struct VtFileScan),
 	.obj_constructor    = VtFileScan_constructor,
 	.obj_destructor     = VtFileScan_destructor,
-// 	.obj_from_json      = VtFileScan_objectFromJSON,
 };
 
 static struct VtFileScan* VtFileScan_alloc(struct VtObject_ops *ops)
@@ -105,36 +104,12 @@ void VtFileScan_put(struct VtFileScan **FileScan)
 	VtApiPage_put((struct VtApiPage**) FileScan);
 }
 
-static size_t write_cb( char *ptr, size_t size, size_t nmemb, void *userdata)
-{
-	size_t bytes = size * nmemb;  // total amount of data. 
-	struct VtApiPage *page_hand = (struct VtApiPage *) userdata;
-	unsigned int new_buff_size = page_hand->buffer_size + bytes;
-	
-	DBG(1, "Recv %zd bytes\n", bytes);
-	
-	page_hand->buffer = realloc(page_hand->buffer, new_buff_size+1);
-	
-	if (!page_hand->buffer) {
-		ERROR("Out of memory\n");
-		return 0;
-	}
-	
-	page_hand->buffer[new_buff_size] = 0; // null term
-	memcpy(page_hand->buffer + page_hand->buffer_size, ptr, bytes);
-	
-	
-	page_hand->buffer_size = new_buff_size;
-	return bytes;
-}
+
 
 void VtFileScan_setApiKey(struct VtFileScan *file_scan, const char *api_key)
 {
-
-	if (file_scan->api_key)
-		free(file_scan->api_key);
-
-	file_scan->api_key = strdup(api_key);
+	// Call parent function
+	return VtApiPage_setApiKey((struct VtApiPage *)file_scan, api_key);
 }
 
 
@@ -206,7 +181,7 @@ int VtFileScan_scan(struct VtFileScan *file_scan, const char *file_path)
     if (debug_level)
 		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 	
-	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_cb); // callback for data
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, __VtApiPage_WriteCb); // callback for data
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, file_scan); // user arg
 	
 	
@@ -296,7 +271,7 @@ int VtFileScan_rescanHash(struct VtFileScan *file_scan, const char *hash)
     if (debug_level)
 		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 	
-	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_cb); // callback for data
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, __VtApiPage_WriteCb); // callback for data
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, file_scan); // user arg
 	
 	
@@ -386,7 +361,7 @@ int VtFileScan_report(struct VtFileScan *file_scan, const char *hash)
     if (debug_level)
 		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 
-	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_cb); // callback for data
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, __VtApiPage_WriteCb); // callback for data
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, file_scan); // user arg
 
 	
