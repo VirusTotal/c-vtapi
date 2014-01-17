@@ -215,15 +215,15 @@ cleanup:
 }
 
 
-int VtUrl_report(struct VtUrl *vt_url, const char *hash)
+int VtUrl_report(struct VtUrl *vt_url, const char *resource, bool scan, bool all_info)
 {
 	
 	CURL *curl;
 	CURLcode res;
 	int ret = 0;
-	struct curl_httppost *formpost=NULL;
-	struct curl_httppost *lastptr=NULL;
-	struct curl_slist *headerlist=NULL;
+	struct curl_httppost *formpost = NULL;
+	struct curl_httppost *lastptr = NULL;
+	struct curl_slist *headerlist = NULL;
 	static const char header_buf[] = "Expect:";
 	
 	curl = curl_easy_init();
@@ -233,17 +233,15 @@ int VtUrl_report(struct VtUrl *vt_url, const char *hash)
 	}
 	// initialize custom header list (stating that Expect: 100-continue is not wanted
 	headerlist = curl_slist_append(headerlist, header_buf);
-	
-	DBG(1, "hash to rescan'%s'\n", hash);
 	DBG(1, "Api Key =  '%s'\n", vt_url->api_key);
 	
 	ret = curl_formadd(&formpost,
 					   &lastptr,
 					   CURLFORM_COPYNAME, "resource",
-					   CURLFORM_COPYCONTENTS,  hash,
+					   CURLFORM_COPYCONTENTS,  resource,
 					   CURLFORM_END);
 	if (ret)
-		ERROR("Adding hash %s\n", hash);
+		ERROR("Adding resource %s\n", resource);
 	
 	
 	ret = curl_formadd(&formpost,
@@ -251,9 +249,25 @@ int VtUrl_report(struct VtUrl *vt_url, const char *hash)
 					   CURLFORM_COPYNAME, "apikey",
 					   CURLFORM_COPYCONTENTS, vt_url->api_key,
 					   CURLFORM_END);
-	
 	if (ret)
 		ERROR("Adding key\n");
+
+	if (scan) {
+		ret = curl_formadd(&formpost,
+			&lastptr,
+			CURLFORM_COPYNAME, "scan",
+			CURLFORM_COPYCONTENTS, "1",
+			CURLFORM_END);
+	}
+
+	if (all_info) {
+		ret = curl_formadd(&formpost,
+					&lastptr,
+					CURLFORM_COPYNAME, "all_info",
+					CURLFORM_COPYCONTENTS, "1",
+					CURLFORM_END);
+	}
+	
 	
 	curl_easy_setopt(curl, CURLOPT_URL, VT_API_BASE_URL "url/report");
 	
