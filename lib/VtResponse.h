@@ -30,7 +30,7 @@ int VtResponse_fromJSONstr(struct VtResponse *response, const char *json_str);
 char *VtResponse_getString(struct VtResponse *response, const char *key);
 
 
-json_t * VtResponse_getJanssonObj(struct VtResponse *response, const char *json_str);
+json_t * VtResponse_getJanssonObj(struct VtResponse *response);
 
 
 #endif

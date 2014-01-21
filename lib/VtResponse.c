@@ -224,7 +224,7 @@ int VtResponse_fromJSONstr(struct VtResponse *response, const char *json_str)
 	return 0;
 }
 
-json_t * VtResponse_getJanssonObj(struct VtResponse *response, const char *json_str)
+json_t * VtResponse_getJanssonObj(struct VtResponse *response)
 {
 	return response->json_data;
 }
