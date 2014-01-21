@@ -60,20 +60,20 @@ struct VtObject_ops
 {
 	/** Unique type name of the object */
 	char * obj_type;
-	
+
 	/** Size of object */
 	size_t obj_size;
-	
+
 	/**
 	* Optional callback to init/allocate any private data
 	*/
 	int (*obj_constructor)(struct VtObject *);
-	
+
 	/**
 	* Optional callback to free any private data
 	*/
 	int (*obj_destructor)(struct VtObject *);
-	
+
 	/*optional callback to clone private data */
 	int (*obj_clone)(struct VtObject *dst, struct VtObject *src);
 	
@@ -81,8 +81,8 @@ struct VtObject_ops
 	 @return 0 if equal. -1, 1 see man qsort()
 	*/
 	int (*obj_compare)(const struct VtObject *dst,const struct VtObject *src);
-	
-	
+
+
 	/** optional callback to create from JSON
 	 @return 0 if equal. -1, 1 see man qsort()
 	*/
