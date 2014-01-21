@@ -35,3 +35,7 @@ Doxyfile
 INSTALL
 .libs/
 ar-lib
+examples/c/scan
+examples/c/url
+examples/c/url_dist
+
