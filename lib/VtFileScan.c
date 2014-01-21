@@ -130,6 +130,9 @@ int VtFileScan_scan(struct VtFileScan *file_scan, const char *file_path)
 	struct curl_slist *headerlist=NULL;
 	static const char header_buf[] = "Expect:";
 	
+	
+	VtApiPage_resetBuffer((struct VtApiPage *) file_scan);
+
 	curl = curl_easy_init();
 	if (!curl) {
 		ERROR("init curl\n");
@@ -180,11 +183,11 @@ int VtFileScan_scan(struct VtFileScan *file_scan, const char *file_path)
 	/* enable verbose for easier tracing */
     if (debug_level)
 		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-	
+
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, __VtApiPage_WriteCb); // callback for data
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, file_scan); // user arg
-	
-	
+
+
 	/* Perform the request, res will get the return code */
 	res = curl_easy_perform(curl);
 	DBG(1, "Perform done\n");
@@ -193,8 +196,11 @@ int VtFileScan_scan(struct VtFileScan *file_scan, const char *file_path)
 		ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
 		goto cleanup;
 	}
-	
+
 	DBG(1, "Page:\n%s\n",file_scan->buffer);
+
+	if (file_scan->response)
+		VtResponse_put(&file_scan->response);
 
 	file_scan->response = VtResponse_new();
 	ret = VtResponse_fromJSONstr(file_scan->response, file_scan->buffer);
@@ -227,7 +233,9 @@ int VtFileScan_rescanHash(struct VtFileScan *file_scan, const char *hash)
 	struct curl_httppost *lastptr=NULL;
 	struct curl_slist *headerlist=NULL;
 	static const char header_buf[] = "Expect:";
-	
+
+	VtApiPage_resetBuffer((struct VtApiPage *) file_scan);
+
 	curl = curl_easy_init();
 	if (!curl) {
 		ERROR("init curl\n");
@@ -283,9 +291,11 @@ int VtFileScan_rescanHash(struct VtFileScan *file_scan, const char *hash)
 		ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
 		goto cleanup;
 	}
-	
+
 	DBG(1, "Page:\n%s\n",file_scan->buffer);
-	
+	if (file_scan->response)
+		VtResponse_put(&file_scan->response);
+
 	file_scan->response = VtResponse_new();
 	ret = VtResponse_fromJSONstr(file_scan->response, file_scan->buffer);
 	if (ret) {
@@ -317,7 +327,8 @@ int VtFileScan_report(struct VtFileScan *file_scan, const char *hash)
 	struct curl_httppost *lastptr=NULL;
 	struct curl_slist *headerlist=NULL;
 	static const char header_buf[] = "Expect:";
-	
+
+	VtApiPage_resetBuffer((struct VtApiPage *) file_scan);
 	curl = curl_easy_init();
 	if (!curl) {
 		ERROR("init curl\n");
@@ -375,7 +386,9 @@ int VtFileScan_report(struct VtFileScan *file_scan, const char *hash)
 	}
 	
 	DBG(1, "Page:\n%s\n",file_scan->buffer);
-	
+
+	if (file_scan->response)
+		VtResponse_put(&file_scan->response);
 	file_scan->response = VtResponse_new();
 	ret = VtResponse_fromJSONstr(file_scan->response, file_scan->buffer);
 	if (ret) {
