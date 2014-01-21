@@ -114,6 +114,15 @@ void VtApiPage_setApiKey(struct VtApiPage *api, const char *key)
 	api->api_key = strdup(key);
 }
 
+void VtApiPage_resetBuffer(struct VtApiPage *api)
+{
+	if (api->buffer) {
+		free(api->buffer);
+		api->buffer = NULL;
+	}
+	api->buffer_size = 0;
+}
+
 size_t __VtApiPage_WriteCb( char *ptr, size_t size, size_t nmemb, void *userdata)
 {
 	size_t bytes = size * nmemb;  // total amount of data.
