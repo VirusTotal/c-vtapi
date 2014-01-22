@@ -128,7 +128,8 @@ int VtUrl_scan(struct VtUrl *vt_url, const char *url)
 	struct curl_httppost *lastptr=NULL;
 	struct curl_slist *headerlist=NULL;
 	static const char header_buf[] = "Expect:";
-	
+
+	VtApiPage_resetBuffer((struct VtApiPage *) vt_url);
 	curl = curl_easy_init();
 	if (!curl) {
 		ERROR("init curl\n");
@@ -155,16 +156,16 @@ int VtUrl_scan(struct VtUrl *vt_url, const char *url)
 			  CURLFORM_END);
 	if (ret)
 		ERROR("Adding url %s\n", url);
-	
+
 	ret = curl_formadd(&formpost,
 				 &lastptr,
 			  CURLFORM_COPYNAME, "apikey",
 			  CURLFORM_COPYCONTENTS, vt_url->api_key,
 			  CURLFORM_END);
-	
+
 	if (ret)
 		ERROR("Adding key\n");
-	
+
 	curl_easy_setopt(curl, CURLOPT_URL, VT_API_BASE_URL "url/scan");
 
 #ifdef DISABLE_HTTPS_VALIDATION
@@ -181,8 +182,8 @@ int VtUrl_scan(struct VtUrl *vt_url, const char *url)
 	
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, __VtApiPage_WriteCb); // callback for data
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, vt_url); // user arg
-	
-	
+
+
 	/* Perform the request, res will get the return code */
 	res = curl_easy_perform(curl);
 	DBG(1, "Perform done\n");
@@ -191,8 +192,12 @@ int VtUrl_scan(struct VtUrl *vt_url, const char *url)
 		ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
 		goto cleanup;
 	}
-	
+
 	DBG(1, "Page:\n%s\n",vt_url->buffer);
+
+		// if a previous response
+	if (vt_url->response)
+		VtResponse_put(&vt_url->response);   // relase reference counter
 
 	vt_url->response = VtResponse_new();
 	ret = VtResponse_fromJSONstr(vt_url->response, vt_url->buffer);
@@ -200,7 +205,7 @@ int VtUrl_scan(struct VtUrl *vt_url, const char *url)
 		ERROR("Parsing JSON\n");
 		goto cleanup;
 	}
-	
+
 cleanup:
 	/* always cleanup */
 	curl_easy_cleanup(curl);
@@ -225,7 +230,8 @@ int VtUrl_report(struct VtUrl *vt_url, const char *resource, bool scan, bool all
 	struct curl_httppost *lastptr = NULL;
 	struct curl_slist *headerlist = NULL;
 	static const char header_buf[] = "Expect:";
-	
+
+	VtApiPage_resetBuffer((struct VtApiPage *) vt_url);
 	curl = curl_easy_init();
 	if (!curl) {
 		ERROR("init curl\n");
@@ -297,7 +303,10 @@ int VtUrl_report(struct VtUrl *vt_url, const char *resource, bool scan, bool all
 	}
 	
 	DBG(1, "Page:\n%s\n",vt_url->buffer);
-	
+
+		// if a previous response
+	if (vt_url->response)
+		VtResponse_put(&vt_url->response);   // relase reference counter
 	vt_url->response = VtResponse_new();
 	ret = VtResponse_fromJSONstr(vt_url->response, vt_url->buffer);
 	if (ret) {
