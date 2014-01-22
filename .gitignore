@@ -38,6 +38,7 @@ ar-lib
 examples/c/scan
 examples/c/url
 examples/c/url_dist
+examples/c/ip_report
 .DS_Store
 vtcapi-config.h
 vtcapi.xcodeproj/
