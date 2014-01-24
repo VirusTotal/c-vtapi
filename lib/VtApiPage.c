@@ -52,9 +52,9 @@ int VtApiPage_destructor(struct VtObject *obj)
 	if (page->api_key)
 		free(page->api_key);
     
-    if (page->response) {
-        VtResponse_put(&page->response);
-    }
+	if (page->response) {
+		VtResponse_put(&page->response);
+	}
 
 	return 0;
 }
@@ -138,10 +138,10 @@ size_t __VtApiPage_WriteCb( char *ptr, size_t size, size_t nmemb, void *userdata
 		return 0;
 	}
 
-	page_hand->buffer[new_buff_size] = 0; // null term
+	
 	memcpy(page_hand->buffer + page_hand->buffer_size, ptr, bytes);
-
-
+	page_hand->buffer[new_buff_size] = 0; // null term
+	
 	page_hand->buffer_size = new_buff_size;
 	return bytes;
 }
