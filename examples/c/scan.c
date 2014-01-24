@@ -71,13 +71,13 @@ int main(int argc, char * const *argv)
 				if (ret) {
 					printf("Error: %d \n", ret);
 				} else {
-                    response = VtFileScan_getResponse(file_scan);
-                    str = VtResponse_toJSONstr(response, VT_JSON_FLAG_INDENT);
-                    if (str) {
-                        printf("Response:\n%s\n", str);
-                        free(str);
-                    }
-                    VtResponse_put(&response);
+					response = VtFileScan_getResponse(file_scan);
+					str = VtResponse_toJSONstr(response, VT_JSON_FLAG_INDENT);
+					if (str) {
+						printf("Response:\n%s\n", str);
+						free(str);
+					}
+					VtResponse_put(&response);
                 }
 				break;
             case 'r':
@@ -91,14 +91,14 @@ int main(int argc, char * const *argv)
 				if (ret) {
 					printf("Error: %d \n", ret);
 				} else {
-                    response = VtFileScan_getResponse(file_scan);
-                    str = VtResponse_toJSONstr(response, VT_JSON_FLAG_INDENT);
-                    if (str) {
-                        printf("Response:\n%s\n", str);
-                        free(str);
-                    }
-                    VtResponse_put(&response);
-                }
+					response = VtFileScan_getResponse(file_scan);
+					str = VtResponse_toJSONstr(response, VT_JSON_FLAG_INDENT);
+					if (str) {
+						printf("Response:\n%s\n", str);
+						free(str);
+					}
+					VtResponse_put(&response);
+				}
 				break;
             case 'i':
 				if (!api_key) {
@@ -111,18 +111,18 @@ int main(int argc, char * const *argv)
 				if (ret) {
 					printf("Error: %d \n", ret);
 				} else {
-                    response = VtFileScan_getResponse(file_scan);
-                    str = VtResponse_toJSONstr(response, VT_JSON_FLAG_INDENT);
-                    if (str) {
-                        printf("Response:\n%s\n", str);
-                        free(str);
-                    }
-                    VtResponse_put(&response);
-                }
+					response = VtFileScan_getResponse(file_scan);
+					str = VtResponse_toJSONstr(response, VT_JSON_FLAG_INDENT);
+					if (str) {
+						printf("Response:\n%s\n", str);
+						free(str);
+					}
+					VtResponse_put(&response);
+				}
 				break;
 			case 'h':
 				print_usage(argv[0]);
-				return 0;
+				goto cleanup;
 			case 'v':
 				printf(" verbose selected\n");
 				if (optarg)
@@ -139,7 +139,7 @@ int main(int argc, char * const *argv)
 			printf("%s ", argv[optind++]);
 		printf("\n");
 	}
-
+	cleanup:
 	DBG("Cleanup\n");
 	VtFileScan_put(&file_scan);
 	if (api_key)
