@@ -1,6 +1,6 @@
 Runtime Dependencies
-	* curl
-	* janson
+	* curl     (curl-devel)
+	* janson   (janson-devel)
 
 Compiling Dependencies
 	* automake, autoconf  (might be autotools package on your platform)
@@ -15,7 +15,7 @@ autoreconf -fi
 make
 
 
-To generate developer doxygen docs in doc/ dir:
+If you have doxygen installed on your system you may optionally generate developer doxygen docs:
 make doxygen-doc
 
 
