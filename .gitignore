@@ -39,6 +39,7 @@ examples/c/scan
 examples/c/url
 examples/c/url_dist
 examples/c/ip_report
+examples/c/domain_report
 .DS_Store
 vtcapi-config.h
 vtcapi.xcodeproj/
