@@ -138,8 +138,8 @@ void VtObject_put(struct VtObject **obj_arg)
 	obj = *obj_arg; // derefernce only once
 
 	obj->refcount--;
-	DBG(DGB_LEVEL_MEM, "Returned object reference %p, %d remaining\n",
-		obj, obj->refcount);
+	DBG(DGB_LEVEL_MEM, "Returned object reference %p, %d remaining type: %s\n",
+		obj, obj->refcount,  obj->obj_ops->obj_type);
 
 	if (obj->refcount < 0) {
 		ERROR_FATAL("Refcount = %d \n", obj->refcount);
