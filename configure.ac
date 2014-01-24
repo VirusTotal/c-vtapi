@@ -1,4 +1,4 @@
-AC_INIT([VirusTotal API], [0.1], [karl.hiramoto@virustotaol.com], [vtcapi])
+AC_INIT([VirusTotal API], [0.1], [karl.hiramoto@virustotaol.com], [c-vtapi])
 AC_PREREQ(2.61)
 
 AC_CONFIG_MACRO_DIR([m4])
