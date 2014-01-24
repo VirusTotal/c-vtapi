@@ -60,7 +60,7 @@ int VtIpAddr_destructor(struct VtObject *obj)
 	struct VtIpAddr *vt_ip_addr = (struct VtIpAddr *)obj;
 
 	DBG(DGB_LEVEL_MEM, " destructor %p\n", vt_ip_addr);
-	
+
 	// Parent destructor
 	return VtApiPage_destructor((struct VtObject *)obj);	
 }

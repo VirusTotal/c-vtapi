@@ -59,7 +59,7 @@ int VtFileScan_destructor(struct VtObject *obj)
 	struct VtFileScan *file_scan = (struct VtFileScan *)obj;
 
 	DBG(DGB_LEVEL_MEM, " destructor %p\n", file_scan);
-	
+
 	// Parent destructor
 	return VtApiPage_destructor((struct VtObject *)obj);	
 }
