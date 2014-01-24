@@ -28,7 +28,7 @@ struct VtResponse
 	VT_OBJECT_COMMON
 	int response_code;
 	char *verbose_msg;
-    json_error_t json_error;
+	json_error_t json_error;
 	json_t *json_data;
 };
 
@@ -65,6 +65,10 @@ int VtResponse_destructor(struct VtObject *obj)
 	if (response->verbose_msg)
 		free(response->verbose_msg);
 
+	if (response->json_data) {
+		json_decref(response->json_data);
+		response->json_data = NULL;
+	}
 	
 	return 0;
 }
@@ -111,12 +115,10 @@ void VtResponse_get(struct VtResponse *VtResponse)
 /** put a reference counter */
 void VtResponse_put(struct VtResponse **resp)
 {
-    struct VtResponse *response = *resp;
-    
-    if (response->json_data) {
-        json_decref(response->json_data);
-    }
-    
+	struct VtResponse *response = *resp;
+
+	DBG(DGB_LEVEL_MEM, "  %p\n", response);
+
 	VtObject_put((struct VtObject**) resp);
 }
 
