@@ -7,6 +7,7 @@
 /// Indent JSON
 #define VT_JSON_FLAG_INDENT  1 << 1
 
+struct VtResponse;
 
 struct VtResponse* VtResponse_new(void);
 
