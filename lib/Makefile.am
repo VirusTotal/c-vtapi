@@ -10,7 +10,7 @@ lib_LTLIBRARIES = libvtcapi.la
 
 libvtcapi_la_CFLAGS  = -g3 -Wall -Werror 
 libvtcapi_la_SOURCES = VtObject.c VtApiPage.c VtFileScan.c VtDebug.c \
-	VtIpAddr.c VtUrl.c VtResponse.c VtUrlDist.c
+	VtDomain.c VtIpAddr.c VtUrl.c VtResponse.c VtUrlDist.c
 
 libvtcapi_la_LDFLAGS = -version-info 1  -ljansson
 
