@@ -70,7 +70,7 @@ int VtUrl_destructor(struct VtObject *obj)
 
 
 static struct VtObject_ops obj_ops = {
-	.obj_type           = "file/scan",
+	.obj_type           = "VtUrl",
 	.obj_size           = sizeof(struct VtUrl),
 	.obj_constructor    = VtUrl_constructor,
 	.obj_destructor     = VtUrl_destructor,

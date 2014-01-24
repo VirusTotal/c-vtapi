@@ -71,7 +71,7 @@ int VtIpAddr_destructor(struct VtObject *obj)
 
 
 static struct VtObject_ops obj_ops = {
-	.obj_type           = "file/scan",
+	.obj_type           = "VtIpAddr",
 	.obj_size           = sizeof(struct VtIpAddr),
 	.obj_constructor    = VtIpAddr_constructor,
 	.obj_destructor     = VtIpAddr_destructor,

@@ -74,7 +74,7 @@ int VtUrlDist_destructor(struct VtObject *obj)
 
 
 static struct VtObject_ops obj_ops = {
-	.obj_type           = "file/scan",
+	.obj_type           = "VtUrlDist",
 	.obj_size           = sizeof(struct VtUrlDist),
 	.obj_constructor    = VtUrlDist_constructor,
 	.obj_destructor     = VtUrlDist_destructor,
