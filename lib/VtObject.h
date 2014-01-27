@@ -6,6 +6,14 @@
 #include <jansson.h>
 
 
+
+/**
+* @defgroup VtObject   Base object 
+* @{
+*/
+
+
+
 /**
 * Common VtObject Header
 *
@@ -145,6 +153,8 @@ json_t * VtObject_toJSON(struct VtObject *obj, int flags);
  **/
 char * VtObject_toJSONstr(struct VtObject *obj);
 
+
+/** @}  */
 
 #endif
 
