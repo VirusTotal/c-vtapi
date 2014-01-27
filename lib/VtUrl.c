@@ -79,30 +79,30 @@ static struct VtObject_ops obj_ops = {
 
 static struct VtUrl* VtUrl_alloc(struct VtObject_ops *ops)
 {
-	struct VtUrl *FileScan;
+	struct VtUrl *url_scan;
 
-	FileScan = (struct VtUrl*) VtObject_alloc(ops);
-	return FileScan;
+	url_scan = (struct VtUrl*) VtObject_alloc(ops);
+	return url_scan;
 }
 
 
 struct VtUrl* VtUrl_new(void)
 {
-	struct VtUrl *FileScan = VtUrl_alloc(&obj_ops);
+	struct VtUrl *url_scan = VtUrl_alloc(&obj_ops);
 
-	return FileScan;
+	return url_scan;
 }
 
 /** Get a reference counter */
-void VtUrl_get(struct VtUrl *FileScan)
+void VtUrl_get(struct VtUrl *url_scan)
 {
-	VtObject_get((struct VtObject*) FileScan);
+	VtObject_get((struct VtObject*) url_scan);
 }
 
 /** put a reference counter */
-void VtUrl_put(struct VtUrl **FileScan)
+void VtUrl_put(struct VtUrl **url_scan)
 {
-	VtApiPage_put((struct VtApiPage**) FileScan);
+	VtApiPage_put((struct VtApiPage**) url_scan);
 }
 
 void VtUrl_setApiKey(struct VtUrl *vt_url, const char *api_key)

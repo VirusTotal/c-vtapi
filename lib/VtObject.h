@@ -8,7 +8,7 @@
 
 
 /**
-* @defgroup VtObject   Base object 
+* @defgroup VtObject VtObject base object 
 * @{
 */
 

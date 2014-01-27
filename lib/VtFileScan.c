@@ -25,6 +25,8 @@
 
 #include "vtcapi_common.h"
 
+
+
 struct VtFileScan
 {
 	API_OBJECT_COMMON

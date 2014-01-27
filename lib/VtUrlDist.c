@@ -130,7 +130,7 @@ void VtUrlDist_setBefore(struct VtUrlDist *vt_udist, unsigned long long  value)
 	vt_udist->before = value;
 }
 
-void VtUrlDist_setLimit(struct VtUrlDist *vt_udist, unsigned long long  value)
+void VtUrlDist_setLimit(struct VtUrlDist *vt_udist, int value)
 {
 	vt_udist->limit = value;
 }

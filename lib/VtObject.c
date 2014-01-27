@@ -2,15 +2,30 @@
 #include <stdlib.h>
 #include <string.h>
 
-
-/*
 #ifdef HAVE_CONFIG_H
 #include "vtcapi-config.h"
-#endif*/
+#endif
 
 #include "VtObject.h"
 
 #include "vtcapi_common.h"
+
+/**
+@mainpage C API for VirusTotal 
+@author Karl Hiramoto <karl.hiramoto@virustotal.com>
+@date 2014
+
+@section Intro Introduction
+
+This is a library to implement API calls for VirusTotal's http://www.virustotal.com/
+public and private API's.
+
+The public API is available to anyone who registers at www.virustotal.com.
+The private API features are only available to users with a private API licence.
+
+
+*/
+
 
 
 

@@ -25,6 +25,9 @@
 
 #include "vtcapi_common.h"
 
+
+
+
 struct VtIpAddr
 {
 	API_OBJECT_COMMON

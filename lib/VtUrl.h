@@ -5,18 +5,22 @@
 struct VtUrl;
 struct VtObject;
 
-
+/**
+* @ingroup VtApiPage
+* @defgroup VtUrl  VtUrl URL scanning object
+* @{
+*/
 
 struct VtUrl* VtUrl_new(void);
 
 /** Get a reference counter */
-void VtUrl_get(struct VtUrl *FileScan);
+void VtUrl_get(struct VtUrl *);
 
 
 /** put a reference counter */
-void VtUrl_put(struct VtUrl **FileScan);
+void VtUrl_put(struct VtUrl **);
 
-void VtUrl_setApiKey(struct VtUrl *file_scan, const char *api_key);
+void VtUrl_setApiKey(struct VtUrl *url_scan, const char *api_key);
 
 /**
  * @brief Scan URL 
@@ -40,5 +44,11 @@ int VtUrl_scan(struct VtUrl *, const char *url);
  */
 int VtUrl_report(struct VtUrl *, const char *url, bool scan, bool all_info);
 
-struct VtResponse * VtUrl_getResponse(struct VtUrl *file_scan);
+
+struct VtResponse * VtUrl_getResponse(struct VtUrl *url_scan);
+
+/**
+*  @}
+*/
+
 #endif
