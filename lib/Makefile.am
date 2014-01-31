@@ -9,8 +9,16 @@ lib_LTLIBRARIES = libvtcapi.la
 #include_HEADERS = 
 
 libvtcapi_la_CFLAGS  = -g3 -Wall -Werror 
-libvtcapi_la_SOURCES = VtObject.c VtApiPage.c VtFileScan.c VtDebug.c \
-	VtDomain.c VtIpAddr.c VtUrl.c VtResponse.c VtUrlDist.c
+libvtcapi_la_SOURCES = VtObject.c \
+	VtApiPage.c \
+	VtComments.c \
+	VtDebug.c \
+	VtDomain.c \
+	VtFileScan.c \
+	VtIpAddr.c \
+	VtResponse.c \
+	VtUrl.c \
+	VtUrlDist.c
 
 libvtcapi_la_LDFLAGS = -version-info 1  -ljansson
 

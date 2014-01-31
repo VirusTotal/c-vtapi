@@ -6,7 +6,7 @@ struct VtUrlDist;
 
 /**
 * @ingroup VtApiPage
-* @defgroup VtUrlDist  URL Distribution service.  Requires private-API with permissions
+* @defgroup VtUrlDist VtUrlDist URL Distribution service.  Requires private-API with permissions
 * @{
 */
 struct VtUrlDist* VtUrlDist_new(void);
