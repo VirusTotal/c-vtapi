@@ -15,12 +15,12 @@
 
 void print_usage(const char *prog_name)
 {
-	printf("%s < --apikey YOUR_API_KEY >  [ --all-info ] [ --report-scan ]  [ --report URL ] [ --scan URL ]\n", prog_name);
+	printf("%s < --apikey YOUR_API_KEY >  [ --resource ] [ --get ]  [ --put \"<comments>\" ] < --before YYYYMMDDHHSS >\n", prog_name);
 	printf("  --apikey YOUR_API_KEY   Your virus total API key.  This arg 1st \n");
-	printf("  --all-info              When doing a report, set allinfo flag\n");
-	printf("  --report-scan           When doing a report, set scan flag\n");
-	printf("  --scan URL              URL to scan. \n");
-	printf("  --report URL            URL to report.\n");
+	printf("  --resource              Hash your looking for\n");
+	printf("  --get                   Get commnets of resource\n");
+	printf("  --put 'comments'        'comments' to add to resource\n");
+	printf("  --before 'YYYYMMDDHHSS'  datetime token\n");
 
 }
 
@@ -46,6 +46,7 @@ int main(int argc, char * const *argv)
 		int option_index = 0;
 		static struct option long_options[] = {
 			{"apikey",  required_argument,     0,  'a'},
+			{"before",  required_argument,     0,  'b'},
 			{"put",  required_argument,    0,  'p' },
 			{"resource",  required_argument,    0,  'r' },
 			{"get",  no_argument,     0,  'g'},
@@ -69,9 +70,17 @@ int main(int argc, char * const *argv)
 				printf(" resource: %s \n", optarg);
 				VtComments_setResource(comments, optarg);
 				break;
+			case 'b':
+				printf(" before: %s \n", optarg);
+				VtComments_setBefore(comments, optarg);
+				break;
 			case 'h':
 				print_usage(argv[0]);
 				return 0;
+			case 'p':
+				get = false;
+				VtComments_add(comments, optarg);
+				break;
 			case 'v':
 				printf(" verbose selected\n");
 				if (optarg)
@@ -81,7 +90,7 @@ int main(int argc, char * const *argv)
 				printf("?? getopt returned character code 0%o ??\n", c);
 			}
 	} // end while
-		
+
 	if (optind < argc) {
 		printf("non-option ARGV-elements: ");
 		while (optind < argc)
@@ -104,6 +113,8 @@ int main(int argc, char * const *argv)
 			}
 			VtResponse_put(&response);
 		}
+	} else {
+		// comments put in optarg parsing
 	}
 
 	cleanup:
