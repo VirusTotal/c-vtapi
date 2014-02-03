@@ -262,6 +262,12 @@ int VtComments_retrieve(struct VtComments *vt_comments)
 
 	if (!vt_comments->resource) {
 		ERROR("Missing Resource. call VtComments_setResource() first\n");
+		return -1;
+	}
+
+	if (!vt_comments->api_key) {
+		ERROR("Missing APIKEY. call VtComments_setApiKey() first\n");
+		return -1;
 	}
 
 	VtApiPage_resetBuffer((struct VtApiPage *) vt_comments);
@@ -271,7 +277,8 @@ int VtComments_retrieve(struct VtComments *vt_comments)
 		goto cleanup;
 	}
 
-	len = sprintf(get_url, VT_API_BASE_URL "comments/get?apikey=%s", vt_comments->api_key);
+	len = sprintf(get_url, VT_API_BASE_URL "comments/get?apikey=%s&resource=%s",
+		vt_comments->api_key, vt_comments->resource);
 	if (len < 0) {
 		ERROR("sprintf\n");
 		goto cleanup;
