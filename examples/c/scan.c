@@ -85,8 +85,8 @@ int main(int argc, char * const *argv)
 					printf("Must set --apikey first\n");
 					exit(1);
 				}
-                
-				ret = VtFileScan_rescanHash(file_scan, optarg);
+
+				ret = VtFileScan_rescanHash(file_scan, optarg, 0, 0, 0, NULL, false);
                 DBG("rescan ret=%d\n", ret);
 				if (ret) {
 					printf("Error: %d \n", ret);

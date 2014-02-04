@@ -225,7 +225,10 @@ cleanup:
 }
 
 
-int VtFileScan_rescanHash(struct VtFileScan *file_scan, const char *hash)
+int VtFileScan_rescanHash(struct VtFileScan *file_scan,
+ const char *hash,
+	time_t rescan_date, int period, int repeat,
+	const char *notify_url, bool notify_changes_only)
 {
 	
 	CURL *curl;
@@ -234,6 +237,8 @@ int VtFileScan_rescanHash(struct VtFileScan *file_scan, const char *hash)
 	struct curl_httppost *formpost=NULL;
 	struct curl_httppost *lastptr=NULL;
 	struct curl_slist *headerlist=NULL;
+	char buff[32];
+	struct tm time_result;
 	static const char header_buf[] = "Expect:";
 
 	VtApiPage_resetBuffer((struct VtApiPage *) file_scan);
@@ -256,8 +261,64 @@ int VtFileScan_rescanHash(struct VtFileScan *file_scan, const char *hash)
 					   CURLFORM_END);
 	if (ret)
 		ERROR("Adding hash %s\n", hash);
-	
-	
+
+	if (rescan_date) {
+		if (!gmtime_r(&rescan_date, &time_result)) {
+			ERROR("Converting time\n");
+			goto cleanup;
+		}
+
+		ret = strftime(buff, sizeof(buff)-1, "%Y%m%d%H%M%S", &time_result);
+		ret = curl_formadd(&formpost,
+				&lastptr,
+				CURLFORM_COPYNAME, "date",
+				CURLFORM_COPYCONTENTS,  buff,
+				CURLFORM_END);
+		if (ret)
+			ERROR("Adding date %s\n", buff);
+	}
+
+	if (period) {
+		sprintf(buff, "%d", period);
+		ret = curl_formadd(&formpost,
+				&lastptr,
+				CURLFORM_COPYNAME, "period",
+				CURLFORM_COPYCONTENTS,  buff,
+				CURLFORM_END);
+		if (ret)
+			ERROR("Adding period %s\n", buff);
+	}
+
+	if (repeat) {
+		sprintf(buff, "%d", repeat);
+		ret = curl_formadd(&formpost,
+				&lastptr,
+				CURLFORM_COPYNAME, "repeat",
+				CURLFORM_COPYCONTENTS,  buff,
+				CURLFORM_END);
+		if (ret)
+			ERROR("Adding repeat %s\n", buff);
+	}
+
+	if (notify_url) {
+		ret = curl_formadd(&formpost,
+				&lastptr,
+				CURLFORM_COPYNAME, "notify_url",
+				CURLFORM_COPYCONTENTS,  notify_url,
+				CURLFORM_END);
+		if (ret)
+			ERROR("Adding notify_url %s\n", notify_url);
+
+		if (notify_changes_only) {
+			ret = curl_formadd(&formpost,
+				&lastptr,
+				CURLFORM_COPYNAME, "notify_changes_only",
+				CURLFORM_COPYCONTENTS,  "1",
+				CURLFORM_END);
+		}
+	}
+
+
 	ret = curl_formadd(&formpost,
 					   &lastptr,
 					   CURLFORM_COPYNAME, "apikey",
@@ -280,11 +341,11 @@ int VtFileScan_rescanHash(struct VtFileScan *file_scan, const char *hash)
 	/* enable verbose for easier tracing */
     if (debug_level)
 		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-	
+
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, __VtApiPage_WriteCb); // callback for data
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, file_scan); // user arg
-	
-	
+
+
 	/* Perform the request, res will get the return code */
 	res = curl_easy_perform(curl);
 	DBG(1, "Perform done\n");
@@ -304,7 +365,7 @@ int VtFileScan_rescanHash(struct VtFileScan *file_scan, const char *hash)
 		ERROR("Parsing JSON\n");
 		goto cleanup;
 	}
-	
+
 cleanup:
 	/* always cleanup */
 	curl_easy_cleanup(curl);
