@@ -4,7 +4,15 @@
 
 #include <unistd.h>
 #include <getopt.h>
+
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <errno.h>
+
+
 #include <jansson.h>
+
 
 #include "VtFileScan.h"
 #include "VtResponse.h"
@@ -17,8 +25,23 @@ void print_usage(const char *prog_name)
 	printf("%s < --apikey YOUR_API_KEY >   [ --filescan FILE1 ] [ --filescan FILE2 ]\n", prog_name);
 	printf("    --apikey YOUR_API_KEY          Your virus total API key.  This arg 1st \n");
 	printf("    --filescan FILE          File to scan.   Note may specify this multiple times for multiple files\n");
-
+	printf("    --report SHA/MD5          Get a Report on a resource\n");
 }
+
+long long get_file_size(const char *path)
+{
+	struct stat buf;
+	int ret;
+
+
+	ret = stat(path, &buf);
+	if (ret == -1 ) {
+		printf("Error: %s : %d : %m\n", path, errno);
+		return -1;
+	}
+	return buf.st_size;
+}
+
 
 int main(int argc, char * const *argv)
 {

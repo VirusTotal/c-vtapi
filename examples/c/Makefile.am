@@ -2,7 +2,7 @@
 LIBVTC_CFLAGS = -g3 -I../../lib -Wall
 LIBVTC_LDLAGS = -L../../lib -lvtcapi ${JANSSON_LIBS} ${LIBNL_LIBS}
 
-noinst_bin_PROGRAMS = scan url url_dist ip_report domain_report comments
+noinst_bin_PROGRAMS = scan url url_dist ip_report domain_report comments search
 noinst_bindir = $(abs_top_builddir)/example_progs
 
 scan_SOURCES = scan.c
@@ -28,3 +28,7 @@ domain_report_LDFLAGS = $(LIBVTC_LDLAGS)
 comments_SOURCES = comments.c
 comments_CFLAGS = $(AM_CFLAGS) $(LIBVTC_CFLAGS)
 comments_LDFLAGS = $(LIBVTC_LDLAGS)
+
+search_SOURCES = search.c
+search_CFLAGS = $(AM_CFLAGS) $(LIBVTC_CFLAGS)
+search_LDFLAGS = $(LIBVTC_LDLAGS)

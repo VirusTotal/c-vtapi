@@ -31,6 +31,17 @@ void VtFileScan_put(struct VtFileScan **FileScan);
  * @return void
  */
 void VtFileScan_setApiKey(struct VtFileScan *file_scan, const char *api_key);
+
+
+/**
+ * @brief Set the offset for the file/search  API.
+ *
+ * @param file_scan Object pointer
+ * @param offset Offset string returned by virustotal.
+ * @return void
+ */
+void VtFileScan_setOffset(struct VtFileScan *file_scan, const char *offset);
+
 int VtFileScan_scan(struct VtFileScan *file_scan, const char *file_path);
 
 /**
@@ -53,9 +64,25 @@ int VtFileScan_scan(struct VtFileScan *file_scan, const char *file_path);
 int VtFileScan_rescanHash(struct VtFileScan *file_scan, const char *hash,
 	time_t date, int period, int repeat, const char *notify_url, bool notify_changes_only);
 
+/**
+ * @brief Delete a scheduled rescan task
+ *
+ * @param file_scan VtFileScan object pointer
+ * @param hash  resoruce to remove
+ * @return int
+ */
+
+int VtFileScan_rescanDelete(struct VtFileScan *file_scan,
+ const char *hash);
+
 int VtFileScan_report(struct VtFileScan *file_scan, const char *hash);
 
 struct VtResponse * VtFileScan_getResponse(struct VtFileScan *file_scan);
+
+
+int VtFileScan_search(struct VtFileScan *file_scan, const char *query,
+	void (*cb)(const char *resource, void *data),
+	void *user_data);
 
 /** @} */
 #endif

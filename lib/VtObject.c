@@ -1,6 +1,7 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <string.h>
+#include <curl/curl.h>
 
 #ifdef HAVE_CONFIG_H
 #include "vtcapi-config.h"
@@ -273,6 +274,8 @@ char * VtObject_toJSONstr(struct VtObject *obj)
 		return  NULL;
 	}
 	
+	curl_global_init(CURL_GLOBAL_ALL);
+
 	return ops->obj_to_json_str(obj);
 }
 
