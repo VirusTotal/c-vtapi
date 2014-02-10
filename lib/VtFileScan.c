@@ -751,7 +751,7 @@ int VtFileScan_uploadUrl(struct VtFileScan *file_scan, char **url)
 	CURLcode res;
 	int ret = 0;
 	json_t *resp_json = NULL;
-	char get_url[512];
+	char get_url[768];
 
 	VtApiPage_resetBuffer((struct VtApiPage *) file_scan);
 	curl = curl_easy_init();
@@ -764,7 +764,7 @@ int VtFileScan_uploadUrl(struct VtFileScan *file_scan, char **url)
 		VT_API_BASE_URL "file/scan/upload_url?apikey=%s",
 		file_scan->api_key);
 
-	curl_easy_setopt(curl, CURLOPT_URL, url);
+	curl_easy_setopt(curl, CURLOPT_URL, get_url);
 
 #ifdef DISABLE_HTTPS_VALIDATION
 	curl_easy_setopt(curl,CURLOPT_SSL_VERIFYPEER,0L); // disable validation
