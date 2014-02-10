@@ -40,6 +40,8 @@ examples/c/url
 examples/c/url_dist
 examples/c/ip_report
 examples/c/domain_report
+examples/c/comments
+examples/c/search
 .DS_Store
 vtcapi-config.h
 vtcapi.xcodeproj/
