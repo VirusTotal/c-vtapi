@@ -26,6 +26,7 @@ void print_usage(const char *prog_name)
 	printf("    --apikey YOUR_API_KEY          Your virus total API key.  This arg 1st \n");
 	printf("    --filescan FILE          File to scan.   Note may specify this multiple times for multiple files\n");
 	printf("    --report SHA/MD5          Get a Report on a resource\n");
+	printf("    --cluster YYYY-MM-DD          Get a Report on a resource\n");
 }
 
 long long get_file_size(const char *path)
@@ -43,6 +44,26 @@ long long get_file_size(const char *path)
 }
 
 
+// Example data structure that can be passed to callback function
+struct CallbackData
+{
+	int counter;
+};
+
+
+void cluster_callback(json_t* cluster_json, void *data)
+{
+	struct CallbackData *cb_data = (struct CallbackData *) data;
+	char *s;
+
+	cb_data->counter++;
+	printf("------------- Result %d ----------------\n", cb_data->counter);
+	s = json_dumps(cluster_json, JSON_INDENT(4));
+	printf("%s \n", s);
+	printf("\n");
+	free(s);
+}
+
 int main(int argc, char * const *argv)
 {
 	int c;
@@ -51,6 +72,7 @@ int main(int argc, char * const *argv)
     struct VtResponse *response;
     char *str = NULL;
 	char *api_key = NULL;
+	struct CallbackData cb_data = { .counter = 0 };
 
 	if (argc < 2) {
 		print_usage(argv[0]);
@@ -63,9 +85,10 @@ int main(int argc, char * const *argv)
 		int option_index = 0;
 		static struct option long_options[] = {
 			{"filescan",  required_argument,    0,  'f' },
-            {"rescan",  required_argument,    0,  'r' },
-            {"report",  required_argument,    0,  'i' },
+			{"rescan",  required_argument,    0,  'r' },
+			{"report",  required_argument,    0,  'i' },
 			{"apikey",  required_argument,     0,  'a'},
+			{"clusters",  required_argument,     0,  'c'},
 			{"verbose", optional_argument,  0,  'v' },
 			{"help", optional_argument,  0,  'h' },
 			{0,         0,                 0,  0 }
@@ -82,7 +105,19 @@ int main(int argc, char * const *argv)
 				printf(" apikey: %s \n", optarg);
 				VtFileScan_setApiKey(file_scan, optarg);
 				break;
+			case 'c':
 
+				if (!api_key) {
+					printf("Must set --apikey first\n");
+					exit(1);
+				}
+				ret = VtFileScan_clusters(file_scan, optarg,
+						cluster_callback, &cb_data);
+                DBG("Filescan clusters ret=%d\n", ret);
+				if (ret) {
+					printf("Error: %d \n", ret);
+				}
+				break;
 			case 'f':
 				if (!api_key) {
 					printf("Must set --apikey first\n");
@@ -128,7 +163,6 @@ int main(int argc, char * const *argv)
 					printf("Must set --apikey first\n");
 					exit(1);
 				}
-                
 				ret = VtFileScan_report(file_scan, optarg);
                 DBG("rescan ret=%d\n", ret);
 				if (ret) {

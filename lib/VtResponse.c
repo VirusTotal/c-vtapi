@@ -217,7 +217,6 @@ int VtResponse_fromJSON(struct VtResponse *response, json_t *json)
 
 int VtResponse_fromJSONstr(struct VtResponse *response, const char *json_str)
 {
-	
 	response->json_data =json_loads(json_str, 0, &response->json_error);
 	if (!response->json_data) {
 		ERROR("Parsing\n");

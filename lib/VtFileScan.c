@@ -745,6 +745,110 @@ cleanup:
 
 
 
+int VtFileScan_clusters(struct VtFileScan *file_scan, const char *cluster_date,
+	void (*cb)(json_t *cluster_json, void *data), void *user_data)
+{
+	CURL *curl;
+	CURLcode res;
+	int ret = 0;
+ 	json_t *resp_json = NULL;
+	long http_response_code = 0;
+	char url[1024];
+
+	if (!cluster_date || !cluster_date[0]) {
+		ERROR("search cluster_date can not be empty\n");
+		return -1;
+	}
+
+	VtApiPage_resetBuffer((struct VtApiPage *) file_scan);
+	curl = curl_easy_init();
+	if (!curl) {
+		ERROR("init curl\n");
+		goto cleanup;
+	}
+
+	sprintf(url, VT_API_BASE_URL "file/clusters?apikey=%s&date=%s",
+		file_scan->api_key, cluster_date);
+// 	DBG(1, "URL=%s \n", url);
+	curl_easy_setopt(curl, CURLOPT_URL, url);
+
+#ifdef DISABLE_HTTPS_VALIDATION
+	curl_easy_setopt(curl,CURLOPT_SSL_VERIFYPEER,0L); // disable validation
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+#endif
+
+	/* enable verbose for easier tracing */
+    if (debug_level)
+		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, __VtApiPage_WriteCb); // callback for data
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, file_scan); // user arg
+
+
+	/* Perform the request, res will get the return code */
+	res = curl_easy_perform(curl);
+	DBG(1, "Perform done\n");
+	/* Check for errors */
+	if(res != CURLE_OK) {
+		ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+		goto cleanup;
+	} else {
+		curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_response_code);
+		if (http_response_code != 200) {
+			ERROR("HTTP Response code: %ld\n", http_response_code);
+			ret = http_response_code;
+			goto cleanup;
+		}
+	}
+
+	DBG(1, "Page:\n%s\n",file_scan->buffer);
+
+	if (file_scan->response)
+		VtResponse_put(&file_scan->response);
+	file_scan->response = VtResponse_new();
+	ret = VtResponse_fromJSONstr(file_scan->response, file_scan->buffer);
+	if (ret) {
+		ERROR("Parsing JSON\n");
+		goto cleanup;
+	}
+
+	resp_json =  VtResponse_getJanssonObj(file_scan->response);
+
+	if (resp_json) {
+		json_t *offset_json = json_object_get(resp_json, "offset");
+		if (json_is_string(offset_json))
+		{
+			VtFileScan_setOffset(file_scan, json_string_value(offset_json));
+		}
+	}
+
+	if (cb && resp_json) {
+		json_t *clusters_json = json_object_get(resp_json, "clusters");
+		int index;
+		json_t *cl_json = NULL;
+
+
+		if (!clusters_json || !json_is_array(clusters_json)) {
+			goto cleanup;
+		}
+
+		json_array_foreach(clusters_json, index, cl_json) {
+			if (!json_is_object(cl_json)) {
+				ERROR("not valid object\n");
+				continue;
+			}
+			cb(cl_json, user_data);
+		}
+	}
+
+cleanup:
+	/* always cleanup */
+	curl_easy_cleanup(curl);
+
+
+	return ret;
+}
+
 int VtFileScan_uploadUrl(struct VtFileScan *file_scan, char **url)
 {
 	CURL *curl;

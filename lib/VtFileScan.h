@@ -84,5 +84,9 @@ int VtFileScan_search(struct VtFileScan *file_scan, const char *query,
 	void (*cb)(const char *resource, void *data),
 	void *user_data);
 
+int VtFileScan_clusters(struct VtFileScan *file_scan, const char *cluster_date,
+	void (*cb)(json_t *cluster_json, void *data),
+	void *user_data);
+
 /** @} */
 #endif
