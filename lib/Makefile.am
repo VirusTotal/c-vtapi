@@ -15,6 +15,7 @@ libvtcapi_la_SOURCES = VtObject.c \
 	VtDebug.c \
 	VtDomain.c \
 	VtFileScan.c \
+	VtFileDist.c \
 	VtIpAddr.c \
 	VtResponse.c \
 	VtUrl.c \
