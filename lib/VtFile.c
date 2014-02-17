@@ -27,7 +27,7 @@
 
 
 
-struct VtFileScan
+struct VtFile
 {
 	API_OBJECT_COMMON
 	char *offset;
@@ -43,9 +43,9 @@ struct VtFileScan
 *  VtObjects constructor
 *  @arg VtObject that was just allocated
 */
-int VtFileScan_constructor(struct VtObject *obj)
+int VtFile_constructor(struct VtObject *obj)
 {
-	struct VtFileScan *file_scan = (struct VtFileScan *)obj;
+	struct VtFile *file_scan = (struct VtFile *)obj;
 
 	DBG(DGB_LEVEL_MEM, " constructor %p\n", file_scan);
 
@@ -57,9 +57,9 @@ int VtFileScan_constructor(struct VtObject *obj)
 *  VtObjects destructor
 *  @arg VtObject that is going to be free'd
 */
-int VtFileScan_destructor(struct VtObject *obj)
+int VtFile_destructor(struct VtObject *obj)
 {
-	struct VtFileScan *file_scan = (struct VtFileScan *)obj;
+	struct VtFile *file_scan = (struct VtFile *)obj;
 
 	DBG(DGB_LEVEL_MEM, " destructor %p\n", file_scan);
 
@@ -77,49 +77,49 @@ int VtFileScan_destructor(struct VtObject *obj)
 
 static struct VtObject_ops obj_ops = {
 	.obj_type           = "file/scan",
-	.obj_size           = sizeof(struct VtFileScan),
-	.obj_constructor    = VtFileScan_constructor,
-	.obj_destructor     = VtFileScan_destructor,
+	.obj_size           = sizeof(struct VtFile),
+	.obj_constructor    = VtFile_constructor,
+	.obj_destructor     = VtFile_destructor,
 };
 
-static struct VtFileScan* VtFileScan_alloc(struct VtObject_ops *ops)
+static struct VtFile* VtFile_alloc(struct VtObject_ops *ops)
 {
-	struct VtFileScan *FileScan;
+	struct VtFile *FileScan;
 
-	FileScan = (struct VtFileScan*) VtObject_alloc(ops);
+	FileScan = (struct VtFile*) VtObject_alloc(ops);
 	return FileScan;
 }
 
 
-struct VtFileScan* VtFileScan_new(void)
+struct VtFile* VtFile_new(void)
 {
-	struct VtFileScan *FileScan = VtFileScan_alloc(&obj_ops);
+	struct VtFile *FileScan = VtFile_alloc(&obj_ops);
 
 	return FileScan;
 }
 
 /** Get a reference counter */
-void VtFileScan_get(struct VtFileScan *FileScan)
+void VtFile_get(struct VtFile *FileScan)
 {
 	VtObject_get((struct VtObject*) FileScan);
 }
 
 /** put a reference counter */
-void VtFileScan_put(struct VtFileScan **FileScan)
+void VtFile_put(struct VtFile **FileScan)
 {
 	VtApiPage_put((struct VtApiPage**) FileScan);
 }
 
 
 
-void VtFileScan_setApiKey(struct VtFileScan *file_scan, const char *api_key)
+void VtFile_setApiKey(struct VtFile *file_scan, const char *api_key)
 {
 	// Call parent function
 	return VtApiPage_setApiKey((struct VtApiPage *)file_scan, api_key);
 }
 
 
-void VtFileScan_setOffset(struct VtFileScan *file_scan, const char *offset)
+void VtFile_setOffset(struct VtFile *file_scan, const char *offset)
 {
 	if (file_scan->offset) {
 		free(file_scan->offset);
@@ -131,13 +131,13 @@ void VtFileScan_setOffset(struct VtFileScan *file_scan, const char *offset)
 }
 
 
-struct VtResponse * VtFileScan_getResponse(struct VtFileScan *file_scan)
+struct VtResponse * VtFile_getResponse(struct VtFile *file_scan)
 {
 	VtResponse_get(file_scan->response);
 	return file_scan->response;
 }
 
-int VtFileScan_scan(struct VtFileScan *file_scan, const char *file_path)
+int VtFile_scan(struct VtFile *file_scan, const char *file_path)
 {
 
 	CURL *curl;
@@ -241,7 +241,7 @@ cleanup:
 }
 
 
-int VtFileScan_rescanHash(struct VtFileScan *file_scan,
+int VtFile_rescanHash(struct VtFile *file_scan,
  const char *hash,
 	time_t rescan_date, int period, int repeat,
 	const char *notify_url, bool notify_changes_only)
@@ -395,7 +395,7 @@ cleanup:
 	return ret;
 }
 
-int VtFileScan_rescanDelete(struct VtFileScan *file_scan,
+int VtFile_rescanDelete(struct VtFile *file_scan,
  const char *hash)
 {
 	CURL *curl;
@@ -488,7 +488,7 @@ cleanup:
 }
 
 
-int VtFileScan_report(struct VtFileScan *file_scan, const char *hash)
+int VtFile_report(struct VtFile *file_scan, const char *hash)
 {
 	
 	CURL *curl;
@@ -588,7 +588,7 @@ cleanup:
 }
 
 
-int VtFileScan_search(struct VtFileScan *file_scan, const char *query,
+int VtFile_search(struct VtFile *file_scan, const char *query,
 	void (*cb)(const char *resource, void *data),
 	void *user_data)
 {
@@ -697,7 +697,7 @@ int VtFileScan_search(struct VtFileScan *file_scan, const char *query,
 		json_t *offset_json = json_object_get(resp_json, "offset");
 		if (json_is_string(offset_json))
 		{
-			VtFileScan_setOffset(file_scan, json_string_value(offset_json));
+			VtFile_setOffset(file_scan, json_string_value(offset_json));
 		}
 	}
 
@@ -709,7 +709,7 @@ int VtFileScan_search(struct VtFileScan *file_scan, const char *query,
 
 		if (offset_json && json_is_string(offset_json)
 			&& json_string_value(offset_json) && json_string_value(offset_json)[0]) {
-			VtFileScan_setOffset(file_scan, json_string_value(offset_json));
+			VtFile_setOffset(file_scan, json_string_value(offset_json));
 		}
 
 		if (!hashes_json || !json_is_array(hashes_json)) {
@@ -745,7 +745,7 @@ cleanup:
 
 
 
-int VtFileScan_clusters(struct VtFileScan *file_scan, const char *cluster_date,
+int VtFile_clusters(struct VtFile *file_scan, const char *cluster_date,
 	void (*cb)(json_t *cluster_json, void *data), void *user_data)
 {
 	CURL *curl;
@@ -818,7 +818,7 @@ int VtFileScan_clusters(struct VtFileScan *file_scan, const char *cluster_date,
 		json_t *offset_json = json_object_get(resp_json, "offset");
 		if (json_is_string(offset_json))
 		{
-			VtFileScan_setOffset(file_scan, json_string_value(offset_json));
+			VtFile_setOffset(file_scan, json_string_value(offset_json));
 		}
 	}
 
@@ -849,7 +849,7 @@ cleanup:
 	return ret;
 }
 
-int VtFileScan_uploadUrl(struct VtFileScan *file_scan, char **url)
+int VtFile_uploadUrl(struct VtFile *file_scan, char **url)
 {
 	CURL *curl;
 	CURLcode res;

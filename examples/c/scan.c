@@ -14,7 +14,7 @@
 #include <jansson.h>
 
 
-#include "VtFileScan.h"
+#include "VtFile.h"
 #include "VtResponse.h"
 
 
@@ -58,17 +58,19 @@ void cluster_callback(json_t* cluster_json, void *data)
 
 	cb_data->counter++;
 	printf("------------- Result %d ----------------\n", cb_data->counter);
+
 	s = json_dumps(cluster_json, JSON_INDENT(4));
 	printf("%s \n", s);
-	printf("\n");
 	free(s);
+	printf("\n");
+
 }
 
 int main(int argc, char * const *argv)
 {
 	int c;
 	int ret = 0;
-	struct VtFileScan *file_scan;
+	struct VtFile *file_scan;
     struct VtResponse *response;
     char *str = NULL;
 	char *api_key = NULL;
@@ -79,7 +81,7 @@ int main(int argc, char * const *argv)
 		return 0;
 	}
 
-	file_scan = VtFileScan_new();
+	file_scan = VtFile_new();
 
 	while (1) {
 		int option_index = 0;
@@ -103,7 +105,7 @@ int main(int argc, char * const *argv)
 			case 'a':
 				api_key = strdup(optarg);
 				printf(" apikey: %s \n", optarg);
-				VtFileScan_setApiKey(file_scan, optarg);
+				VtFile_setApiKey(file_scan, optarg);
 				break;
 			case 'c':
 
@@ -111,7 +113,7 @@ int main(int argc, char * const *argv)
 					printf("Must set --apikey first\n");
 					exit(1);
 				}
-				ret = VtFileScan_clusters(file_scan, optarg,
+				ret = VtFile_clusters(file_scan, optarg,
 						cluster_callback, &cb_data);
                 DBG("Filescan clusters ret=%d\n", ret);
 				if (ret) {
@@ -124,12 +126,12 @@ int main(int argc, char * const *argv)
 					exit(1);
 				}
 
-				ret = VtFileScan_scan(file_scan, optarg);
+				ret = VtFile_scan(file_scan, optarg);
                 DBG("Filescan ret=%d\n", ret);
 				if (ret) {
 					printf("Error: %d \n", ret);
 				} else {
-					response = VtFileScan_getResponse(file_scan);
+					response = VtFile_getResponse(file_scan);
 					str = VtResponse_toJSONstr(response, VT_JSON_FLAG_INDENT);
 					if (str) {
 						printf("Response:\n%s\n", str);
@@ -144,12 +146,12 @@ int main(int argc, char * const *argv)
 					exit(1);
 				}
 
-				ret = VtFileScan_rescanHash(file_scan, optarg, 0, 0, 0, NULL, false);
+				ret = VtFile_rescanHash(file_scan, optarg, 0, 0, 0, NULL, false);
                 DBG("rescan ret=%d\n", ret);
 				if (ret) {
 					printf("Error: %d \n", ret);
 				} else {
-					response = VtFileScan_getResponse(file_scan);
+					response = VtFile_getResponse(file_scan);
 					str = VtResponse_toJSONstr(response, VT_JSON_FLAG_INDENT);
 					if (str) {
 						printf("Response:\n%s\n", str);
@@ -163,12 +165,12 @@ int main(int argc, char * const *argv)
 					printf("Must set --apikey first\n");
 					exit(1);
 				}
-				ret = VtFileScan_report(file_scan, optarg);
+				ret = VtFile_report(file_scan, optarg);
                 DBG("rescan ret=%d\n", ret);
 				if (ret) {
 					printf("Error: %d \n", ret);
 				} else {
-					response = VtFileScan_getResponse(file_scan);
+					response = VtFile_getResponse(file_scan);
 					str = VtResponse_toJSONstr(response, VT_JSON_FLAG_INDENT);
 					if (str) {
 						printf("Response:\n%s\n", str);
@@ -198,7 +200,7 @@ int main(int argc, char * const *argv)
 	}
 	cleanup:
 	DBG("Cleanup\n");
-	VtFileScan_put(&file_scan);
+	VtFile_put(&file_scan);
 	if (api_key)
 		free(api_key);
 	return 0;
