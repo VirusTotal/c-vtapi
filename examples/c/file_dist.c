@@ -55,7 +55,7 @@ int main(int argc, char * const *argv)
 {
 	int c;
 	int ret = 0;
-	struct VtFileDist *url_dist;
+	struct VtFileDist *file_dist;
 	int repeat = 3;
 	int sleep_sec = 3;
 	struct CallbackData cb_data = { .counter = 0 };
@@ -67,7 +67,7 @@ int main(int argc, char * const *argv)
 		return 0;
 	}
 
-	url_dist = VtFileDist_new();
+	file_dist = VtFileDist_new();
 
 	while (1) {
 		int option_index = 0;
@@ -90,13 +90,13 @@ int main(int argc, char * const *argv)
 
 		switch (c) {
 			case 'a':
-				VtFileDist_setApiKey(url_dist, optarg);
+				VtFileDist_setApiKey(file_dist, optarg);
 				break;
 			case 'l':
-				VtFileDist_setLimit(url_dist, atoi(optarg));
+				VtFileDist_setLimit(file_dist, atoi(optarg));
 				break;
 			case 'i':
-				VtFileDist_setReports(url_dist, atoi(optarg));
+				VtFileDist_setReports(file_dist, atoi(optarg));
 				break;
 			case 'r':
 				repeat = atoi(optarg);
@@ -126,7 +126,7 @@ int main(int argc, char * const *argv)
 	
 	for (  ;  repeat; repeat--) {
 		printf("\n%d requests remaining\n", repeat);
-		ret = VtFileDist_process(url_dist, file_dist_callback, &cb_data);
+		ret = VtFileDist_process(file_dist, file_dist_callback, &cb_data);
 		if (ret) {
 			printf("returned error %d\n", ret);
 			break;
@@ -136,6 +136,6 @@ int main(int argc, char * const *argv)
 	}
 
 	DBG("Cleanup\n");
-	VtFileDist_put(&url_dist);
+	VtFileDist_put(&file_dist);
 	return 0;
 }
