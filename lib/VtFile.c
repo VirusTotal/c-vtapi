@@ -17,6 +17,7 @@
 #include <jansson.h>
 #include <stdbool.h>
 #include <curl/curl.h>
+#include <errno.h>
 
 
 #include "VtObject.h"
@@ -848,6 +849,113 @@ cleanup:
 
 	return ret;
 }
+
+// Example data structure that can be passed to callback function
+struct DlCallbackData
+{
+	int counter;
+	FILE *fp;
+};
+
+
+int VtFile_download(struct VtFile *file_scan, const char *hash,
+	size_t (*cb)(char *ptr, size_t size, size_t nmemb, void *userdata), void *user_data)
+{
+	CURL *curl;
+	CURLcode res;
+	int ret = 0;
+	long http_response_code = 0;
+	char url[1024];
+
+
+	if (!hash || !hash[0]) {
+		ERROR("search hash can not be empty\n");
+		return -1;
+	}
+
+	VtApiPage_resetBuffer((struct VtApiPage *) file_scan);
+	curl = curl_easy_init();
+	if (!curl) {
+		ERROR("init curl\n");
+		goto cleanup;
+	}
+
+	sprintf(url, VT_API_BASE_URL "file/download?apikey=%s&hash=%s",
+		file_scan->api_key, hash);
+	DBG(1, "URL=%s \n", url);
+	curl_easy_setopt(curl, CURLOPT_URL, url);
+
+#ifdef DISABLE_HTTPS_VALIDATION
+	curl_easy_setopt(curl,CURLOPT_SSL_VERIFYPEER,0L); // disable validation
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+#endif
+
+	/* enable verbose for easier tracing */
+    if (debug_level)
+		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+
+	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L); // download API will redirect to link
+
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, cb); // callback for data
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, user_data); // user arg
+
+
+	/* Perform the request, res will get the return code */
+	res = curl_easy_perform(curl);
+	DBG(1, "Perform done\n");
+	/* Check for errors */
+	if(res != CURLE_OK) {
+		ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+		goto cleanup;
+	} else {
+		curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_response_code);
+		if (http_response_code != 200 && http_response_code != 302) {
+			ERROR("HTTP Response code: %ld\n", http_response_code);
+			ret = http_response_code;
+			goto cleanup;
+		}
+	}
+
+	DBG(1, "Page:\n%s\n",file_scan->buffer);
+
+
+cleanup:
+	/* always cleanup */
+	curl_easy_cleanup(curl);
+
+
+	return ret;
+}
+
+static size_t download_to_file_cb(char *ptr, size_t size, size_t nmemb, void *userdata)
+{
+	struct DlCallbackData * cb_data = (struct DlCallbackData *) userdata;
+	int sz;
+
+	sz = fwrite(ptr, size, nmemb, cb_data->fp);
+
+	DBG(1, "Wrote %d bytes\n", sz);
+	return sz;
+}
+
+int VtFile_downloadToFile(struct VtFile *file_scan, const char *hash, const char *out_file)
+{
+	struct DlCallbackData cb_data = { .counter = 0, .fp = NULL };
+	int ret;
+
+	DBG(1, "hash=%s  out_file=%s\n", hash, out_file);
+
+	cb_data.fp = fopen(out_file, "w+");
+	if (!cb_data.fp) {
+		ERROR("Createing output file %s\n", out_file);
+		return -errno;
+	}
+	ret = VtFile_download(file_scan, hash, download_to_file_cb, &cb_data);
+
+	fclose(cb_data.fp);
+	return ret;
+}
+
 
 int VtFile_uploadUrl(struct VtFile *file_scan, char **url)
 {

@@ -88,5 +88,11 @@ int VtFile_clusters(struct VtFile *file_scan, const char *cluster_date,
 	void (*cb)(json_t *cluster_json, void *data),
 	void *user_data);
 
+
+int VtFile_download(struct VtFile *file_scan, const char *hash,
+	size_t (*cb)(char *ptr, size_t size, size_t nmemb, void *userdata), void *user_data);
+
+int VtFile_downloadToFile(struct VtFile *file_scan, const char *hash, const char *out_file);
+
 /** @} */
 #endif
