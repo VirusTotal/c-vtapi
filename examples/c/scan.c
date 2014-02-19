@@ -27,6 +27,8 @@ void print_usage(const char *prog_name)
 	printf("    --filescan FILE          File to scan.   Note may specify this multiple times for multiple files\n");
 	printf("    --report SHA/MD5          Get a Report on a resource\n");
 	printf("    --cluster YYYY-MM-DD          Get a Report on a resource\n");
+	printf("    --download <hash>            Output file for download\n");
+	printf("    --out <file>            Output file for download\n");
 }
 
 long long get_file_size(const char *path)
@@ -74,6 +76,7 @@ int main(int argc, char * const *argv)
     struct VtResponse *response;
     char *str = NULL;
 	char *api_key = NULL;
+	char *out = NULL;
 	struct CallbackData cb_data = { .counter = 0 };
 
 	if (argc < 2) {
@@ -91,6 +94,8 @@ int main(int argc, char * const *argv)
 			{"report",  required_argument,    0,  'i' },
 			{"apikey",  required_argument,     0,  'a'},
 			{"clusters",  required_argument,     0,  'c'},
+			{"download",  required_argument,     0,  'd'},
+			{"out",  required_argument,     0,  'o'},
 			{"verbose", optional_argument,  0,  'v' },
 			{"help", optional_argument,  0,  'h' },
 			{0,         0,                 0,  0 }
@@ -116,6 +121,21 @@ int main(int argc, char * const *argv)
 				ret = VtFile_clusters(file_scan, optarg,
 						cluster_callback, &cb_data);
                 DBG("Filescan clusters ret=%d\n", ret);
+				if (ret) {
+					printf("Error: %d \n", ret);
+				}
+				break;
+			case 'd':
+				if (!api_key) {
+					printf("Must set --apikey first\n");
+					exit(1);
+				}
+				if (!out) {
+					printf("Must set --out first\n");
+					exit(1);
+				}
+				ret = VtFile_downloadToFile(file_scan, optarg, out);
+                DBG("Filescan download ret=%d\n", ret);
 				if (ret) {
 					printf("Error: %d \n", ret);
 				}
@@ -179,6 +199,14 @@ int main(int argc, char * const *argv)
 					VtResponse_put(&response);
 				}
 				break;
+			case 'o':
+
+				if (out)
+					free(out);
+
+				out = strdup(optarg);
+
+				break;
 			case 'h':
 				print_usage(argv[0]);
 				goto cleanup;
@@ -201,7 +229,12 @@ int main(int argc, char * const *argv)
 	cleanup:
 	DBG("Cleanup\n");
 	VtFile_put(&file_scan);
+
 	if (api_key)
 		free(api_key);
+
+	if (out)
+		free(out);
+
 	return 0;
 }
