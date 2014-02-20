@@ -17,6 +17,7 @@
 #include <jansson.h>
 #include <stdbool.h>
 #include <curl/curl.h>
+#include <errno.h>
 
 
 #include "VtObject.h"
@@ -27,7 +28,7 @@
 
 
 
-struct VtFileScan
+struct VtFile
 {
 	API_OBJECT_COMMON
 	char *offset;
@@ -43,9 +44,9 @@ struct VtFileScan
 *  VtObjects constructor
 *  @arg VtObject that was just allocated
 */
-int VtFileScan_constructor(struct VtObject *obj)
+int VtFile_constructor(struct VtObject *obj)
 {
-	struct VtFileScan *file_scan = (struct VtFileScan *)obj;
+	struct VtFile *file_scan = (struct VtFile *)obj;
 
 	DBG(DGB_LEVEL_MEM, " constructor %p\n", file_scan);
 
@@ -57,9 +58,9 @@ int VtFileScan_constructor(struct VtObject *obj)
 *  VtObjects destructor
 *  @arg VtObject that is going to be free'd
 */
-int VtFileScan_destructor(struct VtObject *obj)
+int VtFile_destructor(struct VtObject *obj)
 {
-	struct VtFileScan *file_scan = (struct VtFileScan *)obj;
+	struct VtFile *file_scan = (struct VtFile *)obj;
 
 	DBG(DGB_LEVEL_MEM, " destructor %p\n", file_scan);
 
@@ -77,49 +78,49 @@ int VtFileScan_destructor(struct VtObject *obj)
 
 static struct VtObject_ops obj_ops = {
 	.obj_type           = "file/scan",
-	.obj_size           = sizeof(struct VtFileScan),
-	.obj_constructor    = VtFileScan_constructor,
-	.obj_destructor     = VtFileScan_destructor,
+	.obj_size           = sizeof(struct VtFile),
+	.obj_constructor    = VtFile_constructor,
+	.obj_destructor     = VtFile_destructor,
 };
 
-static struct VtFileScan* VtFileScan_alloc(struct VtObject_ops *ops)
+static struct VtFile* VtFile_alloc(struct VtObject_ops *ops)
 {
-	struct VtFileScan *FileScan;
+	struct VtFile *FileScan;
 
-	FileScan = (struct VtFileScan*) VtObject_alloc(ops);
+	FileScan = (struct VtFile*) VtObject_alloc(ops);
 	return FileScan;
 }
 
 
-struct VtFileScan* VtFileScan_new(void)
+struct VtFile* VtFile_new(void)
 {
-	struct VtFileScan *FileScan = VtFileScan_alloc(&obj_ops);
+	struct VtFile *FileScan = VtFile_alloc(&obj_ops);
 
 	return FileScan;
 }
 
 /** Get a reference counter */
-void VtFileScan_get(struct VtFileScan *FileScan)
+void VtFile_get(struct VtFile *FileScan)
 {
 	VtObject_get((struct VtObject*) FileScan);
 }
 
 /** put a reference counter */
-void VtFileScan_put(struct VtFileScan **FileScan)
+void VtFile_put(struct VtFile **FileScan)
 {
 	VtApiPage_put((struct VtApiPage**) FileScan);
 }
 
 
 
-void VtFileScan_setApiKey(struct VtFileScan *file_scan, const char *api_key)
+void VtFile_setApiKey(struct VtFile *file_scan, const char *api_key)
 {
 	// Call parent function
 	return VtApiPage_setApiKey((struct VtApiPage *)file_scan, api_key);
 }
 
 
-void VtFileScan_setOffset(struct VtFileScan *file_scan, const char *offset)
+void VtFile_setOffset(struct VtFile *file_scan, const char *offset)
 {
 	if (file_scan->offset) {
 		free(file_scan->offset);
@@ -131,13 +132,13 @@ void VtFileScan_setOffset(struct VtFileScan *file_scan, const char *offset)
 }
 
 
-struct VtResponse * VtFileScan_getResponse(struct VtFileScan *file_scan)
+struct VtResponse * VtFile_getResponse(struct VtFile *file_scan)
 {
 	VtResponse_get(file_scan->response);
 	return file_scan->response;
 }
 
-int VtFileScan_scan(struct VtFileScan *file_scan, const char *file_path)
+int VtFile_scan(struct VtFile *file_scan, const char *file_path)
 {
 
 	CURL *curl;
@@ -241,7 +242,7 @@ cleanup:
 }
 
 
-int VtFileScan_rescanHash(struct VtFileScan *file_scan,
+int VtFile_rescanHash(struct VtFile *file_scan,
  const char *hash,
 	time_t rescan_date, int period, int repeat,
 	const char *notify_url, bool notify_changes_only)
@@ -395,7 +396,7 @@ cleanup:
 	return ret;
 }
 
-int VtFileScan_rescanDelete(struct VtFileScan *file_scan,
+int VtFile_rescanDelete(struct VtFile *file_scan,
  const char *hash)
 {
 	CURL *curl;
@@ -488,7 +489,7 @@ cleanup:
 }
 
 
-int VtFileScan_report(struct VtFileScan *file_scan, const char *hash)
+int VtFile_report(struct VtFile *file_scan, const char *hash)
 {
 	
 	CURL *curl;
@@ -588,7 +589,7 @@ cleanup:
 }
 
 
-int VtFileScan_search(struct VtFileScan *file_scan, const char *query,
+int VtFile_search(struct VtFile *file_scan, const char *query,
 	void (*cb)(const char *resource, void *data),
 	void *user_data)
 {
@@ -697,7 +698,7 @@ int VtFileScan_search(struct VtFileScan *file_scan, const char *query,
 		json_t *offset_json = json_object_get(resp_json, "offset");
 		if (json_is_string(offset_json))
 		{
-			VtFileScan_setOffset(file_scan, json_string_value(offset_json));
+			VtFile_setOffset(file_scan, json_string_value(offset_json));
 		}
 	}
 
@@ -709,7 +710,7 @@ int VtFileScan_search(struct VtFileScan *file_scan, const char *query,
 
 		if (offset_json && json_is_string(offset_json)
 			&& json_string_value(offset_json) && json_string_value(offset_json)[0]) {
-			VtFileScan_setOffset(file_scan, json_string_value(offset_json));
+			VtFile_setOffset(file_scan, json_string_value(offset_json));
 		}
 
 		if (!hashes_json || !json_is_array(hashes_json)) {
@@ -745,7 +746,218 @@ cleanup:
 
 
 
-int VtFileScan_uploadUrl(struct VtFileScan *file_scan, char **url)
+int VtFile_clusters(struct VtFile *file_scan, const char *cluster_date,
+	void (*cb)(json_t *cluster_json, void *data), void *user_data)
+{
+	CURL *curl;
+	CURLcode res;
+	int ret = 0;
+ 	json_t *resp_json = NULL;
+	long http_response_code = 0;
+	char url[1024];
+
+	if (!cluster_date || !cluster_date[0]) {
+		ERROR("search cluster_date can not be empty\n");
+		return -1;
+	}
+
+	VtApiPage_resetBuffer((struct VtApiPage *) file_scan);
+	curl = curl_easy_init();
+	if (!curl) {
+		ERROR("init curl\n");
+		goto cleanup;
+	}
+
+	sprintf(url, VT_API_BASE_URL "file/clusters?apikey=%s&date=%s",
+		file_scan->api_key, cluster_date);
+// 	DBG(1, "URL=%s \n", url);
+	curl_easy_setopt(curl, CURLOPT_URL, url);
+
+#ifdef DISABLE_HTTPS_VALIDATION
+	curl_easy_setopt(curl,CURLOPT_SSL_VERIFYPEER,0L); // disable validation
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+#endif
+
+	/* enable verbose for easier tracing */
+    if (debug_level)
+		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, __VtApiPage_WriteCb); // callback for data
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, file_scan); // user arg
+
+
+	/* Perform the request, res will get the return code */
+	res = curl_easy_perform(curl);
+	DBG(1, "Perform done\n");
+	/* Check for errors */
+	if(res != CURLE_OK) {
+		ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+		goto cleanup;
+	} else {
+		curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_response_code);
+		if (http_response_code != 200) {
+			ERROR("HTTP Response code: %ld\n", http_response_code);
+			ret = http_response_code;
+			goto cleanup;
+		}
+	}
+
+	DBG(1, "Page:\n%s\n",file_scan->buffer);
+
+	if (file_scan->response)
+		VtResponse_put(&file_scan->response);
+	file_scan->response = VtResponse_new();
+	ret = VtResponse_fromJSONstr(file_scan->response, file_scan->buffer);
+	if (ret) {
+		ERROR("Parsing JSON\n");
+		goto cleanup;
+	}
+
+	resp_json =  VtResponse_getJanssonObj(file_scan->response);
+
+	if (resp_json) {
+		json_t *offset_json = json_object_get(resp_json, "offset");
+		if (json_is_string(offset_json))
+		{
+			VtFile_setOffset(file_scan, json_string_value(offset_json));
+		}
+	}
+
+	if (cb && resp_json) {
+		json_t *clusters_json = json_object_get(resp_json, "clusters");
+		int index;
+		json_t *cl_json = NULL;
+
+
+		if (!clusters_json || !json_is_array(clusters_json)) {
+			goto cleanup;
+		}
+
+		json_array_foreach(clusters_json, index, cl_json) {
+			if (!json_is_object(cl_json)) {
+				ERROR("not valid object\n");
+				continue;
+			}
+			cb(cl_json, user_data);
+		}
+	}
+
+cleanup:
+	/* always cleanup */
+	curl_easy_cleanup(curl);
+
+
+	return ret;
+}
+
+// Example data structure that can be passed to callback function
+struct DlCallbackData
+{
+	int counter;
+	FILE *fp;
+};
+
+
+int VtFile_download(struct VtFile *file_scan, const char *hash,
+	size_t (*cb)(char *ptr, size_t size, size_t nmemb, void *userdata), void *user_data)
+{
+	CURL *curl;
+	CURLcode res;
+	int ret = 0;
+	long http_response_code = 0;
+	char url[1024];
+
+
+	if (!hash || !hash[0]) {
+		ERROR("search hash can not be empty\n");
+		return -1;
+	}
+
+	VtApiPage_resetBuffer((struct VtApiPage *) file_scan);
+	curl = curl_easy_init();
+	if (!curl) {
+		ERROR("init curl\n");
+		goto cleanup;
+	}
+
+	sprintf(url, VT_API_BASE_URL "file/download?apikey=%s&hash=%s",
+		file_scan->api_key, hash);
+	DBG(1, "URL=%s \n", url);
+	curl_easy_setopt(curl, CURLOPT_URL, url);
+
+#ifdef DISABLE_HTTPS_VALIDATION
+	curl_easy_setopt(curl,CURLOPT_SSL_VERIFYPEER,0L); // disable validation
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+#endif
+
+	/* enable verbose for easier tracing */
+    if (debug_level)
+		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+
+	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L); // download API will redirect to link
+
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, cb); // callback for data
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, user_data); // user arg
+
+
+	/* Perform the request, res will get the return code */
+	res = curl_easy_perform(curl);
+	DBG(1, "Perform done\n");
+	/* Check for errors */
+	if(res != CURLE_OK) {
+		ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+		goto cleanup;
+	} else {
+		curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_response_code);
+		if (http_response_code != 200 && http_response_code != 302) {
+			ERROR("HTTP Response code: %ld\n", http_response_code);
+			ret = http_response_code;
+			goto cleanup;
+		}
+	}
+
+	DBG(1, "Page:\n%s\n",file_scan->buffer);
+
+
+cleanup:
+	/* always cleanup */
+	curl_easy_cleanup(curl);
+
+
+	return ret;
+}
+
+static size_t download_to_file_cb(char *ptr, size_t size, size_t nmemb, void *userdata)
+{
+	struct DlCallbackData * cb_data = (struct DlCallbackData *) userdata;
+	int sz;
+
+	sz = fwrite(ptr, size, nmemb, cb_data->fp);
+
+	DBG(1, "Wrote %d bytes\n", sz);
+	return sz;
+}
+
+int VtFile_downloadToFile(struct VtFile *file_scan, const char *hash, const char *out_file)
+{
+	struct DlCallbackData cb_data = { .counter = 0, .fp = NULL };
+	int ret;
+
+	DBG(1, "hash=%s  out_file=%s\n", hash, out_file);
+
+	cb_data.fp = fopen(out_file, "w+");
+	if (!cb_data.fp) {
+		ERROR("Createing output file %s\n", out_file);
+		return -errno;
+	}
+	ret = VtFile_download(file_scan, hash, download_to_file_cb, &cb_data);
+
+	fclose(cb_data.fp);
+	return ret;
+}
+
+
+int VtFile_uploadUrl(struct VtFile *file_scan, char **url)
 {
 	CURL *curl;
 	CURLcode res;

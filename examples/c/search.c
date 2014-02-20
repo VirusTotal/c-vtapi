@@ -7,7 +7,7 @@
 #include <jansson.h>
 #include <stdbool.h>
 
-#include "VtFileScan.h"
+#include "VtFile.h"
 #include "VtResponse.h"
 
 
@@ -44,7 +44,7 @@ int main(int argc, char * const *argv)
 {
 	int c;
 	int ret = 0;
-	struct VtFileScan *file_scan;
+	struct VtFile *file_scan;
 	struct CallbackData cb_data = { .counter = 0 };
 	char *query = NULL;
 	int max_repeat = 1;
@@ -55,7 +55,7 @@ int main(int argc, char * const *argv)
 		return 0;
 	}
 
-	file_scan = VtFileScan_new();
+	file_scan = VtFile_new();
 
 	while (1) {
 		int option_index = 0;
@@ -75,7 +75,7 @@ int main(int argc, char * const *argv)
 
 		switch (c) {
 			case 'a':
-				VtFileScan_setApiKey(file_scan, optarg);
+				VtFile_setApiKey(file_scan, optarg);
 				break;
 			case 'q':
 				query = strdup(optarg);
@@ -87,7 +87,7 @@ int main(int argc, char * const *argv)
 				print_usage(argv[0]);
 				goto cleanup;
 			case 'o':
-				VtFileScan_setOffset(file_scan, optarg);
+				VtFile_setOffset(file_scan, optarg);
 				break;
 			case 'v':
 				printf(" verbose selected\n");
@@ -108,7 +108,7 @@ int main(int argc, char * const *argv)
 
  	for ( ; max_repeat > 0; max_repeat--) {
 		printf("Repeating %d times\n", max_repeat);
-		ret = VtFileScan_search(file_scan, query, search_callback, &cb_data);
+		ret = VtFile_search(file_scan, query, search_callback, &cb_data);
 		if (ret) {
 			printf("returned error %d\n", ret);
 			break;
@@ -117,7 +117,7 @@ int main(int argc, char * const *argv)
 	cleanup:
 
 	DBG("Cleanup\n");
-	VtFileScan_put(&file_scan);
+	VtFile_put(&file_scan);
 	if (query)
 		free(query);
 	return 0;
