@@ -12,7 +12,11 @@
 #include <string.h>
 #include <math.h>
 #include <sys/types.h>
+
+#if !defined(_WIN32) && !defined(_WIN64)
 #include <unistd.h>
+#endif 
+
 #include <time.h>
 #include <jansson.h>
 #include <stdbool.h>

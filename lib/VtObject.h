@@ -6,6 +6,13 @@
 #include <jansson.h>
 
 
+#ifdef  __cplusplus
+
+//class VpPageHandler_ops;
+extern "C" {
+#endif
+
+#include "vtcapi_common.h"
 
 /**
 * @defgroup VtObject VtObject base object 
@@ -23,21 +30,42 @@
 * @var refcount  Counter for number of holders of this object
 * @var mutex  for locking this object
 */
-#define VT_OBJECT_COMMON \
-int id; \
-int refcount; \
-pthread_mutex_t mutex;  \
-struct VtObject_ops *obj_ops;
-
+#ifdef WINDOWS
+	#define VT_OBJECT_COMMON \
+	int id; \
+	int refcount; \
+	CRITICAL_SECTION mutex;  \
+	struct VtObject_ops *obj_ops
 
 #define VT_OBJECT_LOCK(obj)  do { \
-DBG(3, "LOCKING obj %p\n", obj); \
-pthread_mutex_lock(&((struct VtObject*)obj)->mutex); \
-DBG(3, "LOCKED %p\n", obj);  } while(0)
+	DBG(3, "LOCKING obj %p\n", obj); \
+	WaitForSingleObject(&((struct VtObject*)obj)->mutex, INFINTE); \
+	DBG(3, "LOCKED %p\n", obj);  } while(0)
 
 #define VT_OBJECT_UNLOCK(obj) do { \
-pthread_mutex_unlock(&((struct VtObject*)obj)->mutex); \
-DBG(3, "UNLOCKED %p\n", obj); } while(0)
+	ReleaseMutex(&((struct VtObject*)obj)->mutex); \
+	DBG(3, "UNLOCKED %p\n", obj); } while(0)
+
+#else
+	#define VT_OBJECT_COMMON \
+	int id; \
+	int refcount; \
+	pthread_mutex_t mutex;  \
+	struct VtObject_ops *obj_ops;
+
+#define VT_OBJECT_LOCK(obj)  do { \
+	DBG(3, "LOCKING obj %p\n", obj); \
+	pthread_mutex_lock(&((struct VtObject*)obj)->mutex); \
+	DBG(3, "LOCKED %p\n", obj);  } while (0)
+
+#define VT_OBJECT_UNLOCK(obj) do { \
+	pthread_mutex_unlock(&((struct VtObject*)obj)->mutex); \
+	DBG(3, "UNLOCKED %p\n", obj);
+	} while (0)
+
+#endif
+
+
 
 
 // flags for toJSON()  functions
@@ -155,6 +183,10 @@ char * VtObject_toJSONstr(struct VtObject *obj);
 
 
 /** @}  */
+
+#ifdef  __cplusplus
+}
+#endif /*cplusplus*/
 
 #endif
 
