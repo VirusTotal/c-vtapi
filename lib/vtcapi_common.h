@@ -162,6 +162,15 @@ static void f(void)
 
 */
 
+#ifdef WINDOWS
+#define strdup(x)  _strdup(x)
+#ifdef _MSC_VER
+#define snprintf(buff, sz, FMT, ...)  _snprintf_s(buff, sz, _TRUNCATE, FMT, __VA_ARGS__)
+#else
+#define snprintf(buff, sz, FMT, ARG...)  _snprintf_s(buff, sz, _TRUNCATE, FMT, ##ARG)
+#endif
+#endif
+
 /* Force a compilation VT_ERROR if condition is true, but also produce a 
    result (of value 0 and type size_t), so the expression can *be used 
    e.g. in a structure initializer (or where-ever else comma expressions 

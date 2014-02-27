@@ -31,7 +31,7 @@
 
 struct VtDomain
 {
-	API_OBJECT_COMMON
+	API_OBJECT_COMMON;
 
 };
 
@@ -112,7 +112,7 @@ void VtDomain_put(struct VtDomain **obj)
 void VtDomain_setApiKey(struct VtDomain *vt_domain, const char *api_key)
 {
 	// Call parent function
-	return VtApiPage_setApiKey((struct VtApiPage *)vt_domain, api_key);
+	VtApiPage_setApiKey((struct VtApiPage *)vt_domain, api_key);
 }
 
 
@@ -140,19 +140,19 @@ int VtDomain_report(struct VtDomain *vt_domain, const char *ip_addr_str)
 	VtApiPage_resetBuffer((struct VtApiPage *) vt_domain);
 	curl = curl_easy_init();
 	if (!curl) {
-		ERROR("init curl\n");
+		VT_ERROR("init curl\n");
 		goto cleanup;
 	}
 
 	DBG(1, "Api Key =  '%s'\n", vt_domain->api_key);
 
 	if (ret)
-		ERROR("Adding key\n");
+		VT_ERROR("Adding key\n");
 
 	len = sprintf(get_url, VT_API_BASE_URL "domain/report?apikey=%s&domain=%s",
 		vt_domain->api_key, ip_addr_str);
 	if (len < 0) {
-		ERROR("sprintf\n");
+		VT_ERROR("sprintf\n");
 		goto cleanup;
 	}
 	DBG(1, "URL=%s\n", get_url);
@@ -174,9 +174,9 @@ int VtDomain_report(struct VtDomain *vt_domain, const char *ip_addr_str)
 	/* Perform the request, res will get the return code */
 	res = curl_easy_perform(curl);
 	DBG(1, "Perform done\n");
-	/* Check for errors */
+	/* Check for VT_ERRORs */
 	if(res != CURLE_OK) {
-		ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+		VT_ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
 		goto cleanup;
 	}
 
@@ -190,7 +190,7 @@ int VtDomain_report(struct VtDomain *vt_domain, const char *ip_addr_str)
 
 	ret = VtResponse_fromJSONstr(vt_domain->response, vt_domain->buffer);
 	if (ret) {
-		ERROR("Parsing JSON\n");
+		VT_ERROR("Parsing JSON\n");
 		goto cleanup;
 	}
 
