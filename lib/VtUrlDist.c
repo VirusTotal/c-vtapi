@@ -116,7 +116,7 @@ void VtUrlDist_put(struct VtUrlDist **obj)
 void VtUrlDist_setApiKey(struct VtUrlDist *vt_udist, const char *api_key)
 {
 	// Call parent function
-	return VtApiPage_setApiKey((struct VtApiPage *)vt_udist, api_key);
+	VtApiPage_setApiKey((struct VtApiPage *)vt_udist, api_key);
 }
 
 void VtUrlDist_setAllInfo(struct VtUrlDist *vt_udist, bool value)
@@ -174,7 +174,7 @@ int VtUrlDist_getDistribution(struct VtUrlDist *vt_udist)
 	}
 
 	if (vt_udist->before) {
-		len += ret = sprintf(get_url + len, "&before=%lld", vt_udist->before);
+		len += ret = snprintf(get_url + len, strlen(get_url) - 1, "&before=%lld", vt_udist->before);
 		if (ret < 0) {
 			VT_ERROR("sprintf before\n");
 			goto cleanup;
@@ -182,7 +182,7 @@ int VtUrlDist_getDistribution(struct VtUrlDist *vt_udist)
 	}
 
 	if (vt_udist->after) {
-		len += ret = sprintf(get_url + len, "&after=%lld", vt_udist->after);
+		len += ret = snprintf(get_url + len, strlen(get_url) - 1, "&after=%lld", vt_udist->after);
 		if (ret < 0) {
 			VT_ERROR("sprintf after\n");
 			goto cleanup;
@@ -190,7 +190,7 @@ int VtUrlDist_getDistribution(struct VtUrlDist *vt_udist)
 	}
 
 	if (vt_udist->allinfo) {
-		len += ret = sprintf(get_url + len, "&allinfo=true");
+		len += ret = snprintf(get_url + len, strlen(get_url) - 1, "&allinfo=true");
 		if (ret < 0) {
 			VT_ERROR("sprintf after\n");
 			goto cleanup;
@@ -198,7 +198,7 @@ int VtUrlDist_getDistribution(struct VtUrlDist *vt_udist)
 	}
 
 	if (vt_udist->limit) {
-		len += ret = sprintf(get_url + len, "&limit=%d", vt_udist->limit);
+		len += ret = snprintf(get_url + len, strlen(get_url) - 1, "&limit=%d", vt_udist->limit);
 		if (ret < 0) {
 			VT_ERROR("sprintf after\n");
 			goto cleanup;
@@ -258,7 +258,7 @@ int VtUrlDist_parse(struct VtUrlDist* url_dist,
 {
 	json_t *resp_json, *url_obj;
 	json_t *url_str_json, *timestamp_json, *total_json, *positives_json;
-	int index;
+	unsigned int index;
 
 	if (!url_dist || !url_dist->response) {
 		VT_ERROR("No data recieved\n");
@@ -309,7 +309,7 @@ int VtUrlDist_parse(struct VtUrlDist* url_dist,
 		// Call user defined callback function
 		if (cb)
 			cb(json_string_value(url_str_json), json_integer_value(timestamp_json),
-			json_integer_value(total_json), json_integer_value(positives_json),
+			(int) json_integer_value(total_json), (int) json_integer_value(positives_json),
 			url_obj, user_data);
 			
 	}
