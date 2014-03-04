@@ -6,7 +6,7 @@ Copyright (C) <2013> VirusTotal.
 #define VT_COMMON_H
 
 #ifdef HAVE_CONFIG_H
-#include "vtcapi-config.h"
+#include "c-vtapi_config.h"
 #endif
 
 #if defined(_WIN32) || defined(_WIN64) || defined(__WIN32__) || defined (WIN32)

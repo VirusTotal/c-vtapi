@@ -8,7 +8,7 @@
 #include <curl/curl.h>
 
 #ifdef HAVE_CONFIG_H
-#include "vtcapi-config.h"
+#include "c-vtapi_config.h"
 #endif
 
 #include "VtObject.h"
