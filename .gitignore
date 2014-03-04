@@ -44,5 +44,5 @@ examples/c/comments
 examples/c/search
 examples/c/file_dist
 .DS_Store
-vtcapi-config.h
+c-vtapi_config.h
 vtcapi.xcodeproj/

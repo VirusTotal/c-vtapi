@@ -12,7 +12,11 @@
 #include <string.h>
 #include <math.h>
 #include <sys/types.h>
+
+#if !defined(_WIN32) && !defined(_WIN64)
 #include <unistd.h>
+#endif
+
 #include <time.h>
 #include <jansson.h>
 #include <stdbool.h>
@@ -28,7 +32,7 @@
 
 struct VtComments
 {
-	API_OBJECT_COMMON
+	API_OBJECT_COMMON;
 	char *before; // comments before date
 	char *resource;
 };
@@ -116,7 +120,7 @@ void VtComments_put(struct VtComments **vt_comments)
 void VtComments_setApiKey(struct VtComments *vt_comments, const char *api_key)
 {
 	// Call parent function
-	return VtApiPage_setApiKey((struct VtApiPage *)vt_comments, api_key);
+	VtApiPage_setApiKey((struct VtApiPage *)vt_comments, api_key);
 }
 
 
@@ -158,13 +162,13 @@ int VtComments_add(struct VtComments *vt_comments, const char *comment)
 	VtApiPage_resetBuffer((struct VtApiPage *) vt_comments);
 
 	if (!vt_comments->resource) {
-		ERROR("Missing Resource. call VtComments_setResource() first\n");
+		VT_ERROR("Missing Resource. call VtComments_setResource() first\n");
 		return -1;
 	}
 
 	curl = curl_easy_init();
 	if (!curl) {
-		ERROR("init curl\n");
+		VT_ERROR("init curl\n");
 		goto cleanup;
 	}
 	// initialize custom header list (stating that Expect: 100-continue is not wanted
@@ -178,7 +182,7 @@ int VtComments_add(struct VtComments *vt_comments, const char *comment)
 			  CURLFORM_COPYCONTENTS,  vt_comments->resource,
 			  CURLFORM_END);
 	if (ret)
-		ERROR("Adding resource %s\n", vt_comments->resource);
+		VT_ERROR("Adding resource %s\n", vt_comments->resource);
 	
 	/* Fill in the filename field */ 
 	ret = curl_formadd(&formpost,
@@ -187,7 +191,7 @@ int VtComments_add(struct VtComments *vt_comments, const char *comment)
 			  CURLFORM_COPYCONTENTS, comment,
 			  CURLFORM_END);
 	if (ret)
-		ERROR("Adding comment %s\n", comment);
+		VT_ERROR("Adding comment %s\n", comment);
 
 	ret = curl_formadd(&formpost,
 				 &lastptr,
@@ -196,7 +200,7 @@ int VtComments_add(struct VtComments *vt_comments, const char *comment)
 			  CURLFORM_END);
 
 	if (ret)
-		ERROR("Adding key\n");
+		VT_ERROR("Adding key\n");
 
 	curl_easy_setopt(curl, CURLOPT_URL, VT_API_BASE_URL "comments/put");
 
@@ -221,7 +225,7 @@ int VtComments_add(struct VtComments *vt_comments, const char *comment)
 	DBG(1, "Perform done\n");
 	/* Check for errors */
 	if(res != CURLE_OK) {
-		ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+		VT_ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
 		goto cleanup;
 	}
 
@@ -234,7 +238,7 @@ int VtComments_add(struct VtComments *vt_comments, const char *comment)
 	vt_comments->response = VtResponse_new();
 	ret = VtResponse_fromJSONstr(vt_comments->response, vt_comments->buffer);
 	if (ret) {
-		ERROR("Parsing JSON\n");
+		VT_ERROR("Parsing JSON\n");
 		goto cleanup;
 	}
 
@@ -261,33 +265,33 @@ int VtComments_retrieve(struct VtComments *vt_comments)
 	int len;
 
 	if (!vt_comments->resource) {
-		ERROR("Missing Resource. call VtComments_setResource() first\n");
+		VT_ERROR("Missing Resource. call VtComments_setResource() first\n");
 		return -1;
 	}
 
 	if (!vt_comments->api_key) {
-		ERROR("Missing APIKEY. call VtComments_setApiKey() first\n");
+		VT_ERROR("Missing APIKEY. call VtComments_setApiKey() first\n");
 		return -1;
 	}
 
 	VtApiPage_resetBuffer((struct VtApiPage *) vt_comments);
 	curl = curl_easy_init();
 	if (!curl) {
-		ERROR("init curl\n");
+		VT_ERROR("init curl\n");
 		goto cleanup;
 	}
 
-	len = sprintf(get_url, VT_API_BASE_URL "comments/get?apikey=%s&resource=%s",
+	len = snprintf(get_url, sizeof(get_url)-1, VT_API_BASE_URL "comments/get?apikey=%s&resource=%s",
 		vt_comments->api_key, vt_comments->resource);
 	if (len < 0) {
-		ERROR("sprintf\n");
+		VT_ERROR("sprintf\n");
 		goto cleanup;
 	}
 
 	if (vt_comments->before) {
 		len += ret = sprintf(get_url + len, "&before=%s", vt_comments->before);
 		if (ret < 0) {
-				ERROR("sprintf before\n");
+				VT_ERROR("sprintf before\n");
 				goto cleanup;
 		}
 	}
@@ -314,7 +318,7 @@ int VtComments_retrieve(struct VtComments *vt_comments)
 	DBG(1, "Perform done\n");
 	/* Check for errors */
 	if(res != CURLE_OK) {
-		ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+		VT_ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
 		goto cleanup;
 	}
 
@@ -326,7 +330,7 @@ int VtComments_retrieve(struct VtComments *vt_comments)
 	vt_comments->response = VtResponse_new();
 	ret = VtResponse_fromJSONstr(vt_comments->response, vt_comments->buffer);
 	if (ret) {
-		ERROR("Parsing JSON\n");
+		VT_ERROR("Parsing JSON\n");
 		goto cleanup;
 	}
 	

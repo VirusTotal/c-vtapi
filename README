@@ -19,6 +19,19 @@ If you have doxygen installed on your system you may optionally generate develop
 make doxygen-doc
 
 
+Windows compilation:
+	* Installl mingw
+		*  mingw32 gcc-g++
+		*  mingw32-autoconf
+		*  mingw32-automake
+	* compile libcurl  (See their docs on windows compile)
+
+Windows compilation (MS Visual Studio)
+	* install MS Visual Studio 2013
+	* install CMake
+	* Compile jansson  (see janson docs)
+	* Compile curl  (see janson docs)
+	
 
 See Examples in examples/
 For some example test programs using API.

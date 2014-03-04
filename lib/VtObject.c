@@ -1,4 +1,8 @@
+
+#if !defined(_WIN32) && !defined(_WIN64)
 #include <pthread.h>
+#endif
+
 #include <stdlib.h>
 #include <string.h>
 #include <curl/curl.h>
@@ -32,30 +36,28 @@ The private API features are only available to users with a private API licence.
 
 /// VtObject ID sequence.  NOTE  object allocation for now only done by one thread so no mutex needed yet. 
 static unsigned int id_seq = 0;
-static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
+#ifdef WINDOWS
+CRITICAL_SECTION mutex;
+#else
+static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+#endif
 
 static unsigned int num_obj_types = 0;
 struct VtObject_ops **obj_types_list = NULL;
 
-static void __init__(105) __VtObject_init(void)
-{
-	DBG(1, "init object\n");
-	num_obj_types = 0;
-	obj_types_list = NULL;
-}
 
 void VtObject_register(struct VtObject_ops *ops)
 {
-	pthread_mutex_lock(&mutex);
+	LOCK_MUTEX(&mutex);
 	obj_types_list = realloc(obj_types_list, sizeof(struct VtObject_ops*) *(num_obj_types+2));
 	if (unlikely(obj_types_list == NULL)) {
-		ERROR("no memory to allocate object list\n");
+		VT_ERROR("no memory to allocate object list\n");
 	} else {
 		obj_types_list[num_obj_types] = ops;
 		num_obj_types++;
 	}
-	pthread_mutex_unlock(&mutex);
+	UNLOCK_MUTEX(&mutex);
 	DBG(1, "registered '%s'\n", ops->obj_type);
 }
 
@@ -93,7 +95,7 @@ struct VtObject *VtObject_alloc(struct VtObject_ops *ops)
 	if (ops->obj_constructor) {
 		retval = ops->obj_constructor(new_obj);
 		if (retval) {
-			ERROR("Allocating object, constructor failed");
+			VT_ERROR("Allocating object, constructor failed");
 			free(new_obj);
 			return NULL;
 		}
@@ -158,7 +160,7 @@ void VtObject_put(struct VtObject **obj_arg)
 		obj, obj->refcount,  obj->obj_ops->obj_type);
 
 	if (obj->refcount < 0) {
-		ERROR_FATAL("Refcount = %d \n", obj->refcount);
+		VT_ERROR_FATAL("Refcount = %d \n", obj->refcount);
 	}
 
 	if (obj->refcount <= 0)
@@ -179,6 +181,7 @@ bool VtObject_shared(struct VtObject *obj)
 	return obj->refcount > 1;
 }
 
+/*
 struct VtObject* VtObject_newByName(const char *name)
 {
 	int i;
@@ -199,6 +202,7 @@ struct VtObject* VtObject_newByName(const char *name)
 	return obj;
 }
 
+
 struct VtObject* VtObject_newFromJSON(json_t *json_obj)
 {
 	struct VtObject* obj;
@@ -208,13 +212,13 @@ struct VtObject* VtObject_newFromJSON(json_t *json_obj)
 	int ret = 0;
 
 	if (!json_obj) {
-		ERROR("json_obj is null \n");
+		VT_ERROR("json_obj is null \n");
 		return NULL;
 	}
 
 	iter = json_object_iter(json_obj);
 	if (!iter) {
-		ERROR("unable to iterate json object\n");
+		VT_ERROR("unable to iterate json object\n");
 		return NULL;
 	}
 
@@ -224,7 +228,7 @@ struct VtObject* VtObject_newFromJSON(json_t *json_obj)
 	// allocate object and call constructor
 	obj = VtObject_newByName(key);
 	if (!obj) {
-		ERROR("Unable to allocate object of type '%s'\n", key);
+		VT_ERROR("Unable to allocate object of type '%s'\n", key);
 		return NULL;
 	}
 	ops = get_obj_ops(obj);
@@ -232,7 +236,7 @@ struct VtObject* VtObject_newFromJSON(json_t *json_obj)
 	if (ops->obj_from_json) {
 		ret = ops->obj_from_json(obj, json_object_iter_value(iter));
 		if (ret) {
-			ERROR("Parsing JSON\n");
+			VT_ERROR("Parsing JSON\n");
 		}
 	} else {
 		WARN("No fromJSON callback on object type '%s'\n", key);
@@ -240,6 +244,7 @@ struct VtObject* VtObject_newFromJSON(json_t *json_obj)
 	
 	return obj;
 }
+*/
 
 json_t * VtObject_toJSON(struct VtObject *obj, int flags)
 {
@@ -247,7 +252,7 @@ json_t * VtObject_toJSON(struct VtObject *obj, int flags)
 
 	ops = get_obj_ops(obj);
 	if (!ops) {
-		ERROR("NO object ops");
+		VT_ERROR("NO object ops");
 		return NULL;
 	}
 
@@ -265,7 +270,7 @@ char * VtObject_toJSONstr(struct VtObject *obj)
 
 	ops = get_obj_ops(obj);
 	if (!ops) {
-		ERROR("NO object ops");
+		VT_ERROR("NO object ops");
 		return NULL;
 	}
 
@@ -274,13 +279,36 @@ char * VtObject_toJSONstr(struct VtObject *obj)
 		return  NULL;
 	}
 	
-	curl_global_init(CURL_GLOBAL_ALL);
+
 
 	return ops->obj_to_json_str(obj);
 }
 
-static void __exit__(105) VtObject_exit(void)
+static void CCALL VtObject_exit(void)
 {
 	if (obj_types_list)
 		free(obj_types_list);
+}
+
+
+
+INITIALIZER(VtObject_init)
+{
+	char *level = NULL;
+	DBG(1, "init object\n");
+
+	#ifdef WINDOWS
+	InitializeCriticalSection(&mutex);
+	#endif
+
+	num_obj_types = 0;
+	obj_types_list = NULL;
+
+	level = getenv("VT_DEBUG");
+	if (level) {
+		debug_level = atoi(level);
+	}
+	
+	curl_global_init(CURL_GLOBAL_ALL);
+	atexit(VtObject_exit);
 }

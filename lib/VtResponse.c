@@ -12,7 +12,11 @@
 #include <string.h>
 #include <math.h>
 #include <sys/types.h>
+
+#if !defined(_WIN32) && !defined(_WIN64)
 #include <unistd.h>
+#endif
+
 #include <time.h>
 #include <jansson.h>
 #include <stdbool.h>
@@ -25,7 +29,7 @@
 
 struct VtResponse
 {
-	VT_OBJECT_COMMON
+	VT_OBJECT_COMMON;
 	int response_code;
 	char *verbose_msg;
 	json_error_t json_error;
@@ -140,16 +144,16 @@ int VtResponse_getIntValue(struct VtResponse *response, const char *key, int *va
     json_t *jdata;
 	
 	if (!response->json_data) {
-		ERROR("not set\n");
+		VT_ERROR("not set\n");
 		return -1;
 	}
 
 	jdata = json_object_get(response->json_data, key);
 	if (!jdata) {
-		ERROR("missing key '%s'\n", key)
+		VT_ERROR("missing key '%s'\n", key)
 		return -1;
 	}
-	*value = json_integer_value(jdata);
+	*value =(int) json_integer_value(jdata);
 
     return 0; // OK
 }
@@ -160,13 +164,13 @@ char *VtResponse_getString(struct VtResponse *response, const char *key)
 	const char *str;
 	
 	if (!response->json_data) {
-		ERROR("not set\n");
+		VT_ERROR("not set\n");
 		return NULL;
 	}
 	
 	jdata = json_object_get(response->json_data, key);
 	if (!jdata) {
-		ERROR("missing key '%s'\n", key)
+		VT_ERROR("missing key '%s'\n", key)
 		return NULL;
 	}
 	str = json_string_value(jdata);
@@ -200,16 +204,16 @@ int VtResponse_fromJSON(struct VtResponse *response, json_t *json)
 	
 	json_data = json_object_get(json, "response_code");
 	if (json_data) {
-		response->response_code = json_integer_value(json_data);
+		response->response_code = (int) json_integer_value(json_data);
 	} else {
-		ERROR("Protocol error missing 'response_code'\n");
+		VT_ERROR("Protocol error missing 'response_code'\n");
 	}
 
 	json_data = json_object_get(json, "verbose_msg");
 	if (json_data) {
 		response->verbose_msg = strdup(json_string_value(json_data));
 	} else {
-		ERROR("Protocol error missing 'verbose_msg'\n");
+		VT_ERROR("Protocol error missing 'verbose_msg'\n");
 	}
 
 	return 0;
@@ -219,7 +223,7 @@ int VtResponse_fromJSONstr(struct VtResponse *response, const char *json_str)
 {
 	response->json_data =json_loads(json_str, 0, &response->json_error);
 	if (!response->json_data) {
-		ERROR("Parsing\n");
+		VT_ERROR("Parsing\n");
 		return -1;
 	}
 	return 0;

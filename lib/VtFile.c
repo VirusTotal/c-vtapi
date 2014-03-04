@@ -12,7 +12,11 @@
 #include <string.h>
 #include <math.h>
 #include <sys/types.h>
+
+#if !defined(_WIN32) && !defined(_WIN64)
 #include <unistd.h>
+#endif
+
 #include <time.h>
 #include <jansson.h>
 #include <stdbool.h>
@@ -27,10 +31,9 @@
 #include "vtcapi_common.h"
 
 
-
 struct VtFile
 {
-	API_OBJECT_COMMON
+	API_OBJECT_COMMON;
 	char *offset;
 };
 
@@ -116,7 +119,7 @@ void VtFile_put(struct VtFile **FileScan)
 void VtFile_setApiKey(struct VtFile *file_scan, const char *api_key)
 {
 	// Call parent function
-	return VtApiPage_setApiKey((struct VtApiPage *)file_scan, api_key);
+	VtApiPage_setApiKey((struct VtApiPage *)file_scan, api_key);
 }
 
 
@@ -154,7 +157,7 @@ int VtFile_scan(struct VtFile *file_scan, const char *file_path)
 
 	curl = curl_easy_init();
 	if (!curl) {
-		ERROR("init curl\n");
+		VT_ERROR("init curl\n");
 		goto cleanup;
 	}
 	// initialize custom header list (stating that Expect: 100-continue is not wanted
@@ -169,7 +172,7 @@ int VtFile_scan(struct VtFile *file_scan, const char *file_path)
 			  CURLFORM_FILE,  file_path,
 			  CURLFORM_END);
 	if (ret)
-		ERROR("Adding file %s\n", file_path);
+		VT_ERROR("Adding file %s\n", file_path);
 	
 	/* Fill in the filename field */ 
 	ret = curl_formadd(&formpost,
@@ -178,7 +181,7 @@ int VtFile_scan(struct VtFile *file_scan, const char *file_path)
 			  CURLFORM_COPYCONTENTS, file_path, // FIXME
 			  CURLFORM_END);
 	if (ret)
-		ERROR("Adding filename %s\n", file_path);
+		VT_ERROR("Adding filename %s\n", file_path);
 	
 	ret = curl_formadd(&formpost,
 				 &lastptr,
@@ -187,7 +190,7 @@ int VtFile_scan(struct VtFile *file_scan, const char *file_path)
 			  CURLFORM_END);
 	
 	if (ret)
-		ERROR("Adding key\n");
+		VT_ERROR("Adding key\n");
 	
 	curl_easy_setopt(curl, CURLOPT_URL, VT_API_BASE_URL "file/scan");
 
@@ -212,7 +215,7 @@ int VtFile_scan(struct VtFile *file_scan, const char *file_path)
 	DBG(1, "Perform done\n");
 	/* Check for errors */
 	if(res != CURLE_OK) {
-		ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+		VT_ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
 		goto cleanup;
 	}
 
@@ -224,7 +227,7 @@ int VtFile_scan(struct VtFile *file_scan, const char *file_path)
 	file_scan->response = VtResponse_new();
 	ret = VtResponse_fromJSONstr(file_scan->response, file_scan->buffer);
 	if (ret) {
-		ERROR("Parsing JSON\n");
+		VT_ERROR("Parsing JSON\n");
 		goto cleanup;
 	}
 	
@@ -262,7 +265,7 @@ int VtFile_rescanHash(struct VtFile *file_scan,
 
 	curl = curl_easy_init();
 	if (!curl) {
-		ERROR("init curl\n");
+		VT_ERROR("init curl\n");
 		goto cleanup;
 	}
 	// initialize custom header list (stating that Expect: 100-continue is not wanted
@@ -277,13 +280,20 @@ int VtFile_rescanHash(struct VtFile *file_scan,
 					   CURLFORM_COPYCONTENTS,  hash,
 					   CURLFORM_END);
 	if (ret)
-		ERROR("Adding hash %s\n", hash);
+		VT_ERROR("Adding hash %s\n", hash);
 
 	if (rescan_date) {
-		if (!gmtime_r(&rescan_date, &time_result)) {
-			ERROR("Converting time\n");
+#ifdef WINDOWS
+		if (!gmtime_s(&time_result, &rescan_date)) {
+			VT_ERROR("Converting time\n");
 			goto cleanup;
 		}
+#else
+		if (!gmtime_r(&rescan_date, &time_result)) {
+			VT_ERROR("Converting time\n");
+			goto cleanup;
+		}
+#endif
 
 		ret = strftime(buff, sizeof(buff)-1, "%Y%m%d%H%M%S", &time_result);
 		ret = curl_formadd(&formpost,
@@ -292,29 +302,29 @@ int VtFile_rescanHash(struct VtFile *file_scan,
 				CURLFORM_COPYCONTENTS,  buff,
 				CURLFORM_END);
 		if (ret)
-			ERROR("Adding date %s\n", buff);
+			VT_ERROR("Adding date %s\n", buff);
 	}
 
 	if (period) {
-		sprintf(buff, "%d", period);
+		snprintf(buff, sizeof(buff) -1, "%d", period);
 		ret = curl_formadd(&formpost,
 				&lastptr,
 				CURLFORM_COPYNAME, "period",
 				CURLFORM_COPYCONTENTS,  buff,
 				CURLFORM_END);
 		if (ret)
-			ERROR("Adding period %s\n", buff);
+			VT_ERROR("Adding period %s\n", buff);
 	}
 
 	if (repeat) {
-		sprintf(buff, "%d", repeat);
+		snprintf(buff, sizeof(buff) - 1 , "%d", repeat);
 		ret = curl_formadd(&formpost,
 				&lastptr,
 				CURLFORM_COPYNAME, "repeat",
 				CURLFORM_COPYCONTENTS,  buff,
 				CURLFORM_END);
 		if (ret)
-			ERROR("Adding repeat %s\n", buff);
+			VT_ERROR("Adding repeat %s\n", buff);
 	}
 
 	if (notify_url) {
@@ -324,7 +334,7 @@ int VtFile_rescanHash(struct VtFile *file_scan,
 				CURLFORM_COPYCONTENTS,  notify_url,
 				CURLFORM_END);
 		if (ret)
-			ERROR("Adding notify_url %s\n", notify_url);
+			VT_ERROR("Adding notify_url %s\n", notify_url);
 
 		if (notify_changes_only) {
 			ret = curl_formadd(&formpost,
@@ -343,7 +353,7 @@ int VtFile_rescanHash(struct VtFile *file_scan,
 					   CURLFORM_END);
 	
 	if (ret)
-		ERROR("Adding key\n");
+		VT_ERROR("Adding key\n");
 	
 	curl_easy_setopt(curl, CURLOPT_URL, VT_API_BASE_URL "file/rescan");
 	
@@ -368,7 +378,7 @@ int VtFile_rescanHash(struct VtFile *file_scan,
 	DBG(1, "Perform done\n");
 	/* Check for errors */
 	if(res != CURLE_OK) {
-		ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+		VT_ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
 		goto cleanup;
 	}
 
@@ -379,7 +389,7 @@ int VtFile_rescanHash(struct VtFile *file_scan,
 	file_scan->response = VtResponse_new();
 	ret = VtResponse_fromJSONstr(file_scan->response, file_scan->buffer);
 	if (ret) {
-		ERROR("Parsing JSON\n");
+		VT_ERROR("Parsing JSON\n");
 		goto cleanup;
 	}
 
@@ -411,7 +421,7 @@ int VtFile_rescanDelete(struct VtFile *file_scan,
 
 	curl = curl_easy_init();
 	if (!curl) {
-		ERROR("init curl\n");
+		VT_ERROR("init curl\n");
 		goto cleanup;
 	}
 	// initialize custom header list (stating that Expect: 100-continue is not wanted
@@ -426,7 +436,7 @@ int VtFile_rescanDelete(struct VtFile *file_scan,
 					   CURLFORM_COPYCONTENTS,  hash,
 					   CURLFORM_END);
 	if (ret)
-		ERROR("Adding hash %s\n", hash);
+		VT_ERROR("Adding hash %s\n", hash);
 
 	ret = curl_formadd(&formpost,
 					   &lastptr,
@@ -435,7 +445,7 @@ int VtFile_rescanDelete(struct VtFile *file_scan,
 					   CURLFORM_END);
 
 	if (ret)
-		ERROR("Adding key\n");
+		VT_ERROR("Adding key\n");
 
 	curl_easy_setopt(curl, CURLOPT_URL, VT_API_BASE_URL "file/rescan/delete");
 
@@ -460,7 +470,7 @@ int VtFile_rescanDelete(struct VtFile *file_scan,
 	DBG(1, "Perform done\n");
 	/* Check for errors */
 	if(res != CURLE_OK) {
-		ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+		VT_ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
 		goto cleanup;
 	}
 
@@ -471,7 +481,7 @@ int VtFile_rescanDelete(struct VtFile *file_scan,
 	file_scan->response = VtResponse_new();
 	ret = VtResponse_fromJSONstr(file_scan->response, file_scan->buffer);
 	if (ret) {
-		ERROR("Parsing JSON\n");
+		VT_ERROR("Parsing JSON\n");
 		goto cleanup;
 	}
 
@@ -504,7 +514,7 @@ int VtFile_report(struct VtFile *file_scan, const char *hash)
 	VtApiPage_resetBuffer((struct VtApiPage *) file_scan);
 	curl = curl_easy_init();
 	if (!curl) {
-		ERROR("init curl\n");
+		VT_ERROR("init curl\n");
 		goto cleanup;
 	}
 	// initialize custom header list (stating that Expect: 100-continue is not wanted
@@ -519,7 +529,7 @@ int VtFile_report(struct VtFile *file_scan, const char *hash)
 					   CURLFORM_COPYCONTENTS,  hash,
 					   CURLFORM_END);
 	if (ret)
-		ERROR("Adding hash %s\n", hash);
+		VT_ERROR("Adding hash %s\n", hash);
 
 	ret = curl_formadd(&formpost,
 					   &lastptr,
@@ -528,7 +538,7 @@ int VtFile_report(struct VtFile *file_scan, const char *hash)
 					   CURLFORM_END);
 	
 	if (ret)
-		ERROR("Adding key\n");
+		VT_ERROR("Adding key\n");
 	
 	curl_easy_setopt(curl, CURLOPT_URL, VT_API_BASE_URL "file/report");
 
@@ -553,12 +563,12 @@ int VtFile_report(struct VtFile *file_scan, const char *hash)
 	DBG(1, "Perform done\n");
 	/* Check for errors */
 	if(res != CURLE_OK) {
-		ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+		VT_ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
 		goto cleanup;
 	} else {
 		curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_response_code);
 		if (http_response_code != 200) {
-			ERROR("HTTP Response code: %ld\n", http_response_code);
+			VT_ERROR("HTTP Response code: %ld\n", http_response_code);
 			ret = http_response_code;
 			goto cleanup;
 		}
@@ -571,7 +581,7 @@ int VtFile_report(struct VtFile *file_scan, const char *hash)
 	file_scan->response = VtResponse_new();
 	ret = VtResponse_fromJSONstr(file_scan->response, file_scan->buffer);
 	if (ret) {
-		ERROR("Parsing JSON\n");
+		VT_ERROR("Parsing JSON\n");
 		goto cleanup;
 	}
 
@@ -604,14 +614,14 @@ int VtFile_search(struct VtFile *file_scan, const char *query,
 	long http_response_code = 0;
 
 	if (!query || !query[0]) {
-		ERROR("search query can not be empty\n");
+		VT_ERROR("search query can not be empty\n");
 		return -1;
 	}
 
 	VtApiPage_resetBuffer((struct VtApiPage *) file_scan);
 	curl = curl_easy_init();
 	if (!curl) {
-		ERROR("init curl\n");
+		VT_ERROR("init curl\n");
 		goto cleanup;
 	}
 	// initialize custom header list (stating that Expect: 100-continue is not wanted
@@ -625,7 +635,7 @@ int VtFile_search(struct VtFile *file_scan, const char *query,
 					   CURLFORM_COPYCONTENTS,  query,
 					   CURLFORM_END);
 	if (ret)
-		ERROR("Adding qury %s\n", query);
+		VT_ERROR("Adding qury %s\n", query);
 
 	ret = curl_formadd(&formpost,
 					   &lastptr,
@@ -633,7 +643,7 @@ int VtFile_search(struct VtFile *file_scan, const char *query,
 					   CURLFORM_COPYCONTENTS, file_scan->api_key,
 					   CURLFORM_END);
 	if (ret)
-		ERROR("Adding key\n");
+		VT_ERROR("Adding key\n");
 
 
 
@@ -644,7 +654,7 @@ int VtFile_search(struct VtFile *file_scan, const char *query,
 			CURLFORM_COPYCONTENTS, file_scan->offset,
 			CURLFORM_END);
 		if (ret)
-			ERROR("Adding offset\n");
+			VT_ERROR("Adding offset\n");
 
 	}
 
@@ -671,12 +681,12 @@ int VtFile_search(struct VtFile *file_scan, const char *query,
 	DBG(1, "Perform done\n");
 	/* Check for errors */
 	if(res != CURLE_OK) {
-		ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+		VT_ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
 		goto cleanup;
 	} else {
 		curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_response_code);
 		if (http_response_code != 200) {
-			ERROR("HTTP Response code: %ld\n", http_response_code);
+			VT_ERROR("HTTP Response code: %ld\n", http_response_code);
 			ret = http_response_code;
 			goto cleanup;
 		}
@@ -689,7 +699,7 @@ int VtFile_search(struct VtFile *file_scan, const char *query,
 	file_scan->response = VtResponse_new();
 	ret = VtResponse_fromJSONstr(file_scan->response, file_scan->buffer);
 	if (ret) {
-		ERROR("Parsing JSON\n");
+		VT_ERROR("Parsing JSON\n");
 		goto cleanup;
 	}
 	resp_json =  VtResponse_getJanssonObj(file_scan->response);
@@ -704,7 +714,7 @@ int VtFile_search(struct VtFile *file_scan, const char *query,
 
 	if (cb && resp_json) {
 		json_t *hashes_json = json_object_get(resp_json, "hashes");
-		int index;
+		unsigned int index;
 		json_t *hash_obj;
 		json_t *offset_json = json_object_get(resp_json, "offset");
 
@@ -714,13 +724,13 @@ int VtFile_search(struct VtFile *file_scan, const char *query,
 		}
 
 		if (!hashes_json || !json_is_array(hashes_json)) {
-			ERROR("Parse error: hashes\n");
+			VT_ERROR("Parse error: hashes\n");
 			goto cleanup;
 		}
 
 		json_array_foreach(hashes_json, index, hash_obj) {
 			if (!json_is_string(hash_obj)) {
-				ERROR("hash is not string\n");
+				VT_ERROR("hash is not string\n");
 				continue;
 			}
 			cb(json_string_value(hash_obj), user_data);
@@ -757,18 +767,18 @@ int VtFile_clusters(struct VtFile *file_scan, const char *cluster_date,
 	char url[1024];
 
 	if (!cluster_date || !cluster_date[0]) {
-		ERROR("search cluster_date can not be empty\n");
+		VT_ERROR("search cluster_date can not be empty\n");
 		return -1;
 	}
 
 	VtApiPage_resetBuffer((struct VtApiPage *) file_scan);
 	curl = curl_easy_init();
 	if (!curl) {
-		ERROR("init curl\n");
+		VT_ERROR("init curl\n");
 		goto cleanup;
 	}
 
-	sprintf(url, VT_API_BASE_URL "file/clusters?apikey=%s&date=%s",
+	snprintf(url, sizeof(url) - 1 , VT_API_BASE_URL "file/clusters?apikey=%s&date=%s",
 		file_scan->api_key, cluster_date);
 // 	DBG(1, "URL=%s \n", url);
 	curl_easy_setopt(curl, CURLOPT_URL, url);
@@ -791,12 +801,12 @@ int VtFile_clusters(struct VtFile *file_scan, const char *cluster_date,
 	DBG(1, "Perform done\n");
 	/* Check for errors */
 	if(res != CURLE_OK) {
-		ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+		VT_ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
 		goto cleanup;
 	} else {
 		curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_response_code);
 		if (http_response_code != 200) {
-			ERROR("HTTP Response code: %ld\n", http_response_code);
+			VT_ERROR("HTTP Response code: %ld\n", http_response_code);
 			ret = http_response_code;
 			goto cleanup;
 		}
@@ -809,7 +819,7 @@ int VtFile_clusters(struct VtFile *file_scan, const char *cluster_date,
 	file_scan->response = VtResponse_new();
 	ret = VtResponse_fromJSONstr(file_scan->response, file_scan->buffer);
 	if (ret) {
-		ERROR("Parsing JSON\n");
+		VT_ERROR("Parsing JSON\n");
 		goto cleanup;
 	}
 
@@ -825,7 +835,7 @@ int VtFile_clusters(struct VtFile *file_scan, const char *cluster_date,
 
 	if (cb && resp_json) {
 		json_t *clusters_json = json_object_get(resp_json, "clusters");
-		int index;
+		unsigned int index;
 		json_t *cl_json = NULL;
 
 
@@ -835,7 +845,7 @@ int VtFile_clusters(struct VtFile *file_scan, const char *cluster_date,
 
 		json_array_foreach(clusters_json, index, cl_json) {
 			if (!json_is_object(cl_json)) {
-				ERROR("not valid object\n");
+				VT_ERROR("not valid object\n");
 				continue;
 			}
 			cb(cl_json, user_data);
@@ -869,18 +879,18 @@ int VtFile_download(struct VtFile *file_scan, const char *hash,
 
 
 	if (!hash || !hash[0]) {
-		ERROR("search hash can not be empty\n");
+		VT_ERROR("search hash can not be empty\n");
 		return -1;
 	}
 
 	VtApiPage_resetBuffer((struct VtApiPage *) file_scan);
 	curl = curl_easy_init();
 	if (!curl) {
-		ERROR("init curl\n");
+		VT_ERROR("init curl\n");
 		goto cleanup;
 	}
 
-	sprintf(url, VT_API_BASE_URL "file/download?apikey=%s&hash=%s",
+	snprintf(url, sizeof(url) - 1, VT_API_BASE_URL "file/download?apikey=%s&hash=%s",
 		file_scan->api_key, hash);
 	DBG(1, "URL=%s \n", url);
 	curl_easy_setopt(curl, CURLOPT_URL, url);
@@ -905,12 +915,12 @@ int VtFile_download(struct VtFile *file_scan, const char *hash,
 	DBG(1, "Perform done\n");
 	/* Check for errors */
 	if(res != CURLE_OK) {
-		ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+		VT_ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
 		goto cleanup;
 	} else {
 		curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_response_code);
 		if (http_response_code != 200 && http_response_code != 302) {
-			ERROR("HTTP Response code: %ld\n", http_response_code);
+			VT_ERROR("HTTP Response code: %ld\n", http_response_code);
 			ret = http_response_code;
 			goto cleanup;
 		}
@@ -947,7 +957,7 @@ int VtFile_downloadToFile(struct VtFile *file_scan, const char *hash, const char
 
 	cb_data.fp = fopen(out_file, "w+");
 	if (!cb_data.fp) {
-		ERROR("Createing output file %s\n", out_file);
+		VT_ERROR("Createing output file %s\n", out_file);
 		return -errno;
 	}
 	ret = VtFile_download(file_scan, hash, download_to_file_cb, &cb_data);
@@ -968,7 +978,7 @@ int VtFile_uploadUrl(struct VtFile *file_scan, char **url)
 	VtApiPage_resetBuffer((struct VtApiPage *) file_scan);
 	curl = curl_easy_init();
 	if (!curl) {
-		ERROR("init curl\n");
+		VT_ERROR("init curl\n");
 		goto cleanup;
 	}
 
@@ -996,7 +1006,7 @@ int VtFile_uploadUrl(struct VtFile *file_scan, char **url)
 	DBG(1, "Perform done\n");
 	/* Check for errors */
 	if(res != CURLE_OK) {
-		ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+		VT_ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
 		goto cleanup;
 	} else  {
 
@@ -1009,7 +1019,7 @@ int VtFile_uploadUrl(struct VtFile *file_scan, char **url)
 	file_scan->response = VtResponse_new();
 	ret = VtResponse_fromJSONstr(file_scan->response, file_scan->buffer);
 	if (ret) {
-		ERROR("Parsing JSON\n");
+		VT_ERROR("Parsing JSON\n");
 		goto cleanup;
 	}
 	resp_json =  VtResponse_getJanssonObj(file_scan->response);

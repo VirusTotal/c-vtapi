@@ -8,7 +8,11 @@
 #include <string.h>
 #include <math.h>
 #include <sys/types.h>
+
+#if !defined(_WIN32) && !defined(_WIN64)
 #include <unistd.h>
+#endif
+
 #include <time.h>
 #include <stdbool.h>
 
@@ -134,7 +138,7 @@ size_t __VtApiPage_WriteCb( char *ptr, size_t size, size_t nmemb, void *userdata
 	page_hand->buffer = realloc(page_hand->buffer, new_buff_size+1);
 
 	if (!page_hand->buffer) {
-		ERROR("Out of memory\n");
+		VT_ERROR("Out of memory\n");
 		return 0;
 	}
 

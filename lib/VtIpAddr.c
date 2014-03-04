@@ -12,7 +12,9 @@
 #include <string.h>
 #include <math.h>
 #include <sys/types.h>
+#if !defined(_WIN32) && !defined(_WIN64)
 #include <unistd.h>
+#endif
 #include <time.h>
 #include <jansson.h>
 #include <stdbool.h>
@@ -30,7 +32,7 @@
 
 struct VtIpAddr
 {
-	API_OBJECT_COMMON
+	API_OBJECT_COMMON;
 
 };
 
@@ -111,7 +113,7 @@ void VtIpAddr_put(struct VtIpAddr **obj)
 void VtIpAddr_setApiKey(struct VtIpAddr *vt_ip_addr, const char *api_key)
 {
 	// Call parent function
-	return VtApiPage_setApiKey((struct VtApiPage *)vt_ip_addr, api_key);
+	VtApiPage_setApiKey((struct VtApiPage *)vt_ip_addr, api_key);
 }
 
 
@@ -134,19 +136,19 @@ int VtIpAddr_report(struct VtIpAddr *vt_ip_addr, const char *ip_addr_str)
 	VtApiPage_resetBuffer((struct VtApiPage *) vt_ip_addr);
 	curl = curl_easy_init();
 	if (!curl) {
-		ERROR("init curl\n");
+		VT_ERROR("init curl\n");
 		goto cleanup;
 	}
 
 	DBG(1, "Api Key =  '%s'\n", vt_ip_addr->api_key);
 
 	if (ret)
-		ERROR("Adding key\n");
+		VT_ERROR("Adding key\n");
 
 	len = sprintf(get_url, VT_API_BASE_URL "ip-address/report?apikey=%s&ip=%s",
 		vt_ip_addr->api_key, ip_addr_str);
 	if (len < 0) {
-		ERROR("sprintf\n");
+		VT_ERROR("sprintf\n");
 		goto cleanup;
 	}
 	DBG(1, "URL=%s\n", get_url);
@@ -170,7 +172,7 @@ int VtIpAddr_report(struct VtIpAddr *vt_ip_addr, const char *ip_addr_str)
 	DBG(1, "Perform done\n");
 	/* Check for errors */
 	if(res != CURLE_OK) {
-		ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+		VT_ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
 		goto cleanup;
 	}
 
@@ -184,7 +186,7 @@ int VtIpAddr_report(struct VtIpAddr *vt_ip_addr, const char *ip_addr_str)
 
 	ret = VtResponse_fromJSONstr(vt_ip_addr->response, vt_ip_addr->buffer);
 	if (ret) {
-		ERROR("Parsing JSON\n");
+		VT_ERROR("Parsing JSON\n");
 		goto cleanup;
 	}
 
