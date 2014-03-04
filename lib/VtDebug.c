@@ -9,6 +9,7 @@ void VtDebug_setDebugLevel(int level)
 	debug_level = level;
 }
 
+#if 0
 static void __init__(102) VtDebug_init(void)
 {
 	char *level = getenv("VT_DEBUG");
@@ -16,3 +17,4 @@ static void __init__(102) VtDebug_init(void)
 		debug_level = atoi(level);
 	}
 }
+#endif

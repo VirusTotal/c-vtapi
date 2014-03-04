@@ -6,13 +6,23 @@ Copyright (C) <2013> VirusTotal.
 #define VT_COMMON_H
 
 #ifdef HAVE_CONFIG_H
-#include "vtcapi-config.h"
+#include "c-vtapi_config.h"
+#endif
+
+#if defined(_WIN32) || defined(_WIN64) || defined(__WIN32__) || defined (WIN32)
+	#include <windows.h>
+	#define WINDOWS 1
 #endif
 
 #include <stdio.h>
 #include <assert.h>
+#if !defined(_WIN32) && !defined(_WIN64)
 #include <syslog.h>
-#include <pthread.h>
+#endif
+
+//#if !defined(WINDOWS)
+//#include <pthread.h>
+//#endif
 
 #define BUG()                \
 	do {                 \
@@ -23,14 +33,16 @@ Copyright (C) <2013> VirusTotal.
 		assert(0);	\
 	} while (0)
 // 
-/* program name is package name from config.h*/
-#define PROG_NAME PACKAGE
-
+#define PROG_NAME "c-vtapi"
 
 #define STR_HELPER(x) #x
 #define STR(x) STR_HELPER(x)
 
-#define PRINT(FMT,ARG...) printf(PROG_NAME": " FMT, ##ARG); \
+#ifdef _MSC_VER
+	#define PRINT(FMT,  ...)  printf(PROG_NAME": " FMT, __VA_ARGS__);
+#else
+	#define PRINT(FMT,ARG...) printf(PROG_NAME": " FMT, ##ARG);
+#endif
 
 #define VT_API_BASE_URL "https://www.virustotal.com/vtapi/v2/"
 
@@ -47,48 +59,119 @@ extern int debug_level;
 #else
 /*Dynamic debug levels */
 #define DEBUG_LEVEL debug_level
-#define DBG(LVL,FMT,ARG...) \
-	if (LVL <= debug_level) {\
-		fprintf(stderr, PROG_NAME"<" #LVL ">:%s:%d: " FMT, __FUNCTION__, __LINE__, ##ARG); \
+
+#ifdef WINDOWS
+#define LOCK_MUTEX(m)   WaitForSingleObject(m, INFINITE)
+#define UNLOCK_MUTEX(m) ReleaseMutex(m)
+#else
+#define LOCK_MUTEX(m)   pthread_mutex_lock(m)
+#define UNLOCK_MUTEX(m) pthread_mutex_unlock(m)
+#endif
+
+
+
+#ifdef _MSC_VER
+	#define DBG(LVL,FMT, ...) \
+	if (LVL <= debug_level) { \
+	fprintf(stderr, PROG_NAME"<%d>:%s:%d: " FMT, LVL, __FUNCTION__, __LINE__, __VA_ARGS__); \
+	}
+#else
+	#define DBG(LVL,FMT,ARG...) \
+	if (LVL <= debug_level) { \
+	\
+		fprintf(stderr, PROG_NAME"<%d>:%s:%d: " FMT, LVL, __FUNCTION__, __LINE__, ##ARG); \
+	}
+#endif
+#endif
+
+#ifdef _MSC_VER
+	#define CRIT(FMT, ...) { \
+	fprintf(stderr, PROG_NAME " Critical:%s:%d: " FMT, __FUNCTION__, __LINE__, __VA_ARGS__); \
+	}
+#else
+	#define CRIT(FMT,ARG...) { \
+	fprintf(stderr, PROG_NAME " Critical:%s:%d: " FMT, __FUNCTION__, __LINE__, ##ARG); \
 	}
 #endif
 
-#define CRIT(FMT,ARG...) { \
-fprintf(stderr, PROG_NAME " Critical:%s:%d: " FMT, __FUNCTION__, __LINE__, ##ARG); \
-syslog(LOG_CRIT, PROG_NAME " Critical:%s:%d: " FMT, __FUNCTION__, __LINE__, ##ARG); \
-}
-
-#define ERROR(FMT,ARG...) { \
-	fprintf(stderr, PROG_NAME " Error:%s:%d: " FMT, __FUNCTION__, __LINE__, ##ARG); \
-	syslog(LOG_ERR, PROG_NAME " Error:%s:%d: " FMT, __FUNCTION__, __LINE__, ##ARG); \
+#ifdef _MSC_VER
+	#define VT_ERROR(FMT, ...) { \
+		fprintf(stderr, PROG_NAME " ERROR:%s:%d: " FMT, __FUNCTION__, __LINE__, __VA_ARGS__); \
 	}
+#else
+#define VT_ERROR(FMT,ARG...) { \
+	fprintf(stderr, PROG_NAME " ERROR:%s:%d: " FMT, __FUNCTION__, __LINE__, ##ARG); \
+	}
+#endif
 
+#ifdef _MSC_VER
+	#define WARN(FMT, ...) { \
+		fprintf(stderr, PROG_NAME " Warning:%s:%d: " FMT, __FUNCTION__, __LINE__, __VA_ARGS__); \
+	}
+#else
 #define WARN(FMT,ARG...) { \
 	fprintf(stderr, PROG_NAME " Warning:%s:%d: " FMT, __FUNCTION__, __LINE__, ##ARG); \
-	syslog(LOG_WARNING, PROG_NAME " Warning:%s:%d: " FMT, __FUNCTION__, __LINE__, ##ARG); \
 	}
+#endif
 
+#ifdef _MSC_VER
+	#define INFO(FMT, ...) { \
+		fprintf(stderr, PROG_NAME " Info:%s:%d: " FMT, __FUNCTION__, __LINE__, __VA_ARGS__); \
+		}
+#else
 #define INFO(FMT,ARG...) { \
 	fprintf(stderr, PROG_NAME " Info:%s:%d: " FMT, __FUNCTION__, __LINE__, ##ARG); \
-	syslog(LOG_INFO, PROG_NAME " Info:%s:%d: " FMT, __FUNCTION__, __LINE__, ##ARG); \
 }
+#endif
 	
-	
-#define ERROR_FATAL(FMT,ARG...) { CRIT(FMT, ##ARG); BUG(); }
-
+#ifdef _MSC_VER
+#define VT_ERROR_FATAL(FMT, ...) { CRIT(FMT, __VA_ARGS__); BUG(); }
+#else
+#define VT_ERROR_FATAL(FMT,ARG...) { CRIT(FMT, ##ARG); BUG(); }
+#endif
 
 // lower level init goes first
+#ifdef _MSC_VER
+
+#define CCALL __cdecl
+#pragma section(".CRT$XCU",read)
+#define INITIALIZER(f) \
+	static void __cdecl f(void); \
+	__declspec(allocate(".CRT$XCU")) void(__cdecl*f##_)(void) = f; \
+	static void __cdecl f(void)
+#define likely(x)      x
+#define unlikely(x)    x
+#elif defined(__GNUC__)
+
+#define CCALL
+#define INITIALIZER(f) \
+	static void f(void) __attribute__((constructor));
+static void f(void)
+
+#define likely(x)       __builtin_expect((x),1)
+#define unlikely(x)     __builtin_expect((x),0)
+#endif
+
+/*
 #define __init__(x)  __attribute__ ((constructor (x)))
 #define __init __init__(999)
 
 #define __exit__(x) __attribute__ ((destructor(x)))
 #define __exit __exit__(999)
 
-#define likely(x)       __builtin_expect((x),1)
-#define unlikely(x)     __builtin_expect((x),0)
 
+*/
 
-/* Force a compilation error if condition is true, but also produce a 
+#ifdef WINDOWS
+#define strdup(x)  _strdup(x)
+#ifdef _MSC_VER
+#define snprintf(buff, sz, FMT, ...)  _snprintf_s(buff, sz, _TRUNCATE, FMT, __VA_ARGS__)
+#else
+#define snprintf(buff, sz, FMT, ARG...)  _snprintf_s(buff, sz, _TRUNCATE, FMT, ##ARG)
+#endif
+#endif
+
+/* Force a compilation VT_ERROR if condition is true, but also produce a 
    result (of value 0 and type size_t), so the expression can *be used 
    e.g. in a structure initializer (or where-ever else comma expressions 
    aren't permitted). */ 
@@ -98,6 +181,9 @@ syslog(LOG_CRIT, PROG_NAME " Critical:%s:%d: " FMT, __FUNCTION__, __LINE__, ##AR
 #define __must_be_array(a) BUILD_BUG_ON_ZERO(__builtin_types_compatible_p(typeof(a), typeof(&a[0]))) 
 
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]) + __must_be_array(arr))
+
+
+
 
 
 #define DGB_LEVEL_MEM 8

@@ -31,7 +31,7 @@ struct VpPageHandler_ops *ph_ops;\
 char *buffer; \
 unsigned int buffer_size; \
 struct VtResponse *response; \
-char *api_key;
+char *api_key
 
 
 

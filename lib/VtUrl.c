@@ -1,7 +1,7 @@
 #define _GNU_SOURCE
 
 #ifdef HAVE_CONFIG_H
-#include "vtcapi-config.h"
+#include "c-vtapi_config.h"
 #endif
 
 
@@ -12,7 +12,11 @@
 #include <string.h>
 #include <math.h>
 #include <sys/types.h>
+
+#if !defined(_WIN32) && !defined(_WIN64)
 #include <unistd.h>
+#endif
+
 #include <time.h>
 #include <jansson.h>
 #include <stdbool.h>
@@ -27,7 +31,7 @@
 
 struct VtUrl
 {
-	API_OBJECT_COMMON
+	API_OBJECT_COMMON;
 };
 
 
@@ -108,7 +112,7 @@ void VtUrl_put(struct VtUrl **url_scan)
 void VtUrl_setApiKey(struct VtUrl *vt_url, const char *api_key)
 {
 	// Call parent function
-	return VtApiPage_setApiKey((struct VtApiPage *)vt_url, api_key);
+	VtApiPage_setApiKey((struct VtApiPage *)vt_url, api_key);
 }
 
 
@@ -132,7 +136,7 @@ int VtUrl_scan(struct VtUrl *vt_url, const char *url)
 	VtApiPage_resetBuffer((struct VtApiPage *) vt_url);
 	curl = curl_easy_init();
 	if (!curl) {
-		ERROR("init curl\n");
+		VT_ERROR("init curl\n");
 		goto cleanup;
 	}
 	// initialize custom header list (stating that Expect: 100-continue is not wanted
@@ -146,7 +150,7 @@ int VtUrl_scan(struct VtUrl *vt_url, const char *url)
 			  CURLFORM_COPYCONTENTS,  url,
 			  CURLFORM_END);
 	if (ret)
-		ERROR("Adding file %s\n", url);
+		VT_ERROR("Adding file %s\n", url);
 	
 	/* Fill in the filename field */ 
 	ret = curl_formadd(&formpost,
@@ -155,7 +159,7 @@ int VtUrl_scan(struct VtUrl *vt_url, const char *url)
 			  CURLFORM_COPYCONTENTS, url,
 			  CURLFORM_END);
 	if (ret)
-		ERROR("Adding url %s\n", url);
+		VT_ERROR("Adding url %s\n", url);
 
 	ret = curl_formadd(&formpost,
 				 &lastptr,
@@ -164,7 +168,7 @@ int VtUrl_scan(struct VtUrl *vt_url, const char *url)
 			  CURLFORM_END);
 
 	if (ret)
-		ERROR("Adding key\n");
+		VT_ERROR("Adding key\n");
 
 	curl_easy_setopt(curl, CURLOPT_URL, VT_API_BASE_URL "url/scan");
 
@@ -187,9 +191,9 @@ int VtUrl_scan(struct VtUrl *vt_url, const char *url)
 	/* Perform the request, res will get the return code */
 	res = curl_easy_perform(curl);
 	DBG(1, "Perform done\n");
-	/* Check for errors */
+	/* Check for VT_ERRORs */
 	if(res != CURLE_OK) {
-		ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+		VT_ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
 		goto cleanup;
 	}
 
@@ -202,7 +206,7 @@ int VtUrl_scan(struct VtUrl *vt_url, const char *url)
 	vt_url->response = VtResponse_new();
 	ret = VtResponse_fromJSONstr(vt_url->response, vt_url->buffer);
 	if (ret) {
-		ERROR("Parsing JSON\n");
+		VT_ERROR("Parsing JSON\n");
 		goto cleanup;
 	}
 
@@ -234,7 +238,7 @@ int VtUrl_report(struct VtUrl *vt_url, const char *resource, bool scan, bool all
 	VtApiPage_resetBuffer((struct VtApiPage *) vt_url);
 	curl = curl_easy_init();
 	if (!curl) {
-		ERROR("init curl\n");
+		VT_ERROR("init curl\n");
 		goto cleanup;
 	}
 	// initialize custom header list (stating that Expect: 100-continue is not wanted
@@ -247,7 +251,7 @@ int VtUrl_report(struct VtUrl *vt_url, const char *resource, bool scan, bool all
 					   CURLFORM_COPYCONTENTS,  resource,
 					   CURLFORM_END);
 	if (ret)
-		ERROR("Adding resource %s\n", resource);
+		VT_ERROR("Adding resource %s\n", resource);
 	
 	
 	ret = curl_formadd(&formpost,
@@ -256,7 +260,7 @@ int VtUrl_report(struct VtUrl *vt_url, const char *resource, bool scan, bool all
 					   CURLFORM_COPYCONTENTS, vt_url->api_key,
 					   CURLFORM_END);
 	if (ret)
-		ERROR("Adding key\n");
+		VT_ERROR("Adding key\n");
 
 	if (scan) {
 		ret = curl_formadd(&formpost,
@@ -296,9 +300,9 @@ int VtUrl_report(struct VtUrl *vt_url, const char *resource, bool scan, bool all
 	/* Perform the request, res will get the return code */
 	res = curl_easy_perform(curl);
 	DBG(1, "Perform done\n");
-	/* Check for errors */
+	/* Check for VT_ERRORs */
 	if(res != CURLE_OK) {
-		ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+		VT_ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
 		goto cleanup;
 	}
 	
@@ -310,7 +314,7 @@ int VtUrl_report(struct VtUrl *vt_url, const char *resource, bool scan, bool all
 	vt_url->response = VtResponse_new();
 	ret = VtResponse_fromJSONstr(vt_url->response, vt_url->buffer);
 	if (ret) {
-		ERROR("Parsing JSON\n");
+		VT_ERROR("Parsing JSON\n");
 		goto cleanup;
 	}
 	
