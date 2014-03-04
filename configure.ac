@@ -30,7 +30,7 @@ DX_PDF_FEATURE(ON)
 
 ######################################################################
 
-AC_CONFIG_HEADERS([vtcapi-config.h])
+AC_CONFIG_HEADERS([c-vtapi_config.h])
 
 
 CFLAGS="${CFLAGS} -Os -Wall -Werror -g3 "

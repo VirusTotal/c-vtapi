@@ -1,7 +1,7 @@
 #define _GNU_SOURCE
 
 #ifdef HAVE_CONFIG_H
-#include "vtcapi-config.h"
+#include "c-vtapi_config.h"
 #endif
 
 
