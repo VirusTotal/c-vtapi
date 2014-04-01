@@ -69,7 +69,7 @@ int VtComments_destructor(struct VtObject *obj)
 	
 	if (vt_comments->before)
 		free(vt_comments->before);
-	if (vt_comments->resource);
+	if (vt_comments->resource)
 		free(vt_comments->resource);
 
 	// Parent destructor
