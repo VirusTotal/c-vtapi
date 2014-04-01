@@ -15,6 +15,7 @@
 
 #include <time.h>
 #include <stdbool.h>
+#include <jansson.h>
 
 
 #include "vtcapi_common.h"

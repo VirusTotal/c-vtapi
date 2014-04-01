@@ -145,8 +145,8 @@ extern int debug_level;
 
 #define CCALL
 #define INITIALIZER(f) \
-	static void f(void) __attribute__((constructor));
-static void f(void)
+	static void f(void) __attribute__((constructor));\
+	static void f(void)
 
 #define likely(x)       __builtin_expect((x),1)
 #define unlikely(x)     __builtin_expect((x),0)
