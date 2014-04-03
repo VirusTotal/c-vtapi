@@ -1,6 +1,10 @@
 #ifndef VT_URL_DIST
 #define VT_URL_DIST 1
 
+#ifdef  __cplusplus
+extern "C" {
+#endif
+
 // forward declarations
 struct VtUrlDist;
 
@@ -72,5 +76,9 @@ int VtUrlDist_process(struct VtUrlDist* url_dist,
 /**
 *  @}
 */
+
+#ifdef  __cplusplus
+}
+#endif /*cplusplus*/
 
 #endif

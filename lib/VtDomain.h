@@ -1,6 +1,11 @@
 #ifndef VT_DOMAIN_H
 #define VT_DOMAIN_H 1
 
+
+#ifdef  __cplusplus
+extern "C" {
+#endif
+
 struct VtDomain;
 struct VtResponse;
 
@@ -41,5 +46,9 @@ int VtDomain_report(struct VtDomain *vt_ip_addr, const char *domain_name_str);
 /**
 *  @}
 */
+
+#ifdef  __cplusplus
+}
+#endif /*cplusplus*/
 
 #endif

@@ -1,6 +1,10 @@
 #ifndef VT_COMMENTS_H
 #define VT_COMMENTS_H 1
 
+#ifdef  __cplusplus
+extern "C" {
+#endif
+
 struct VtComments;
 
 struct VtComments* VtComments_new(void);
@@ -21,5 +25,9 @@ int VtComments_add(struct VtComments *vt_comments, const char *comment);
 
 
 int VtComments_retrieve(struct VtComments *vt_comments);
+
+#ifdef  __cplusplus
+}
+#endif /*cplusplus*/
 
 #endif

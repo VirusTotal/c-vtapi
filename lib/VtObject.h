@@ -7,8 +7,6 @@
 
 
 #ifdef  __cplusplus
-
-//class VpPageHandler_ops;
 extern "C" {
 #endif
 
