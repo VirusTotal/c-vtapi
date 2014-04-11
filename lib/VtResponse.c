@@ -134,6 +134,9 @@ void VtResponse_put(struct VtResponse **resp)
 
 char * VtResponse_getVerboseMsg(struct VtResponse *response, char *buf, int buf_siz)
 {
+	if (!response || !response->verbose_msg || !response->verbose_msg[0])
+		return NULL;
+
 	return strncpy(buf, response->verbose_msg, buf_siz);
 }
 
@@ -226,7 +229,7 @@ int VtResponse_fromJSONstr(struct VtResponse *response, const char *json_str)
 		VT_ERROR("Parsing\n");
 		return -1;
 	}
-	return 0;
+	return VtResponse_fromJSON(response, response->json_data);
 }
 
 json_t * VtResponse_getJanssonObj(struct VtResponse *response)

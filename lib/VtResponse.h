@@ -46,6 +46,8 @@ int VtResponse_fromJSON(struct VtResponse *response, json_t *json);
 
 int VtResponse_fromJSONstr(struct VtResponse *response, const char *json_str);
 
+int VtResponse_getIntValue(struct VtResponse *response, const char *key, int *value);
+
 char *VtResponse_getString(struct VtResponse *response, const char *key);
 
 
