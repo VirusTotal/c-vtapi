@@ -67,6 +67,7 @@ void cluster_callback(json_t* cluster_json, void *data)
 	printf("\n");
 
 }
+#define RESP_BUF_SIZE 255
 
 int main(int argc, char * const *argv)
 {
@@ -77,7 +78,9 @@ int main(int argc, char * const *argv)
     char *str = NULL;
 	char *api_key = NULL;
 	char *out = NULL;
+	int response_code;
 	struct CallbackData cb_data = { .counter = 0 };
+	char buf[RESP_BUF_SIZE+1] = { 0, };
 
 	if (argc < 2) {
 		print_usage(argv[0]);
@@ -196,6 +199,16 @@ int main(int argc, char * const *argv)
 						printf("Response:\n%s\n", str);
 						free(str);
 					}
+
+					VtResponse_getVerboseMsg(response, buf, RESP_BUF_SIZE);
+					printf("Msg: %s\n", buf);
+
+					ret = VtResponse_getResponseCode(response, &response_code);
+					if (!ret) {
+						printf("response code: %d\n", response_code);
+					}
+
+
 					VtResponse_put(&response);
 				}
 				break;
