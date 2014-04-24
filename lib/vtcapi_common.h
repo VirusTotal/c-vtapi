@@ -24,8 +24,8 @@
 #endif
 
 #if defined(_WIN32) || defined(_WIN64) || defined(__WIN32__) || defined (WIN32)
-	#include <windows.h>
-	#define WINDOWS 1
+#include <windows.h>
+#define WINDOWS 1
 #endif
 
 #include <stdio.h>
@@ -39,23 +39,23 @@
 //#endif
 
 #define BUG()                \
-	do {                 \
-		fprintf(stderr, "BUG: %s:%d\n",  \
-		__FILE__, __LINE__);         \
-		fflush(stderr); \
-		fflush(stdout); \
-		assert(0);	\
-	} while (0)
-// 
+  do {                 \
+    fprintf(stderr, "BUG: %s:%d\n",  \
+            __FILE__, __LINE__);         \
+    fflush(stderr); \
+    fflush(stdout); \
+    assert(0);	\
+  } while (0)
+//
 #define PROG_NAME "c-vtapi"
 
 #define STR_HELPER(x) #x
 #define STR(x) STR_HELPER(x)
 
 #ifdef _MSC_VER
-	#define PRINT(FMT,  ...)  printf(PROG_NAME": " FMT, __VA_ARGS__);
+#define PRINT(FMT,  ...)  printf(PROG_NAME": " FMT, __VA_ARGS__);
 #else
-	#define PRINT(FMT,ARG...) printf(PROG_NAME": " FMT, ##ARG);
+#define PRINT(FMT,ARG...) printf(PROG_NAME": " FMT, ##ARG);
 #endif
 
 #define VT_API_BASE_URL "https://www.virustotal.com/vtapi/v2/"
@@ -64,12 +64,12 @@
 extern int debug_level;
 #ifdef STATIC_DEBUG
 #ifndef DEBUG_LEVEL
-	#define DEBUG_LEVEL 9
+#define DEBUG_LEVEL 9
 #endif
 #define DBG(LVL,FMT,ARG...) \
-	if (LVL <= DEBUG_LEVEL) {\
-		fprintf(stderr, PROG_NAME"<" #LVL ">:%s:%d: " FMT, __FUNCTION__, __LINE__, ##ARG); \
-	}
+  if (LVL <= DEBUG_LEVEL) {\
+    fprintf(stderr, PROG_NAME"<" #LVL ">:%s:%d: " FMT, __FUNCTION__, __LINE__, ##ARG); \
+  }
 #else
 /*Dynamic debug levels */
 #define DEBUG_LEVEL debug_level
@@ -85,59 +85,59 @@ extern int debug_level;
 
 
 #ifdef _MSC_VER
-	#define DBG(LVL,FMT, ...) \
-	if (LVL <= debug_level) { \
-	fprintf(stderr, PROG_NAME"<%d>:%s:%d: " FMT, LVL, __FUNCTION__, __LINE__, __VA_ARGS__); \
-	}
+#define DBG(LVL,FMT, ...) \
+  if (LVL <= debug_level) { \
+    fprintf(stderr, PROG_NAME"<%d>:%s:%d: " FMT, LVL, __FUNCTION__, __LINE__, __VA_ARGS__); \
+  }
 #else
-	#define DBG(LVL,FMT,ARG...) \
-	if (LVL <= debug_level) { \
-	\
-		fprintf(stderr, PROG_NAME"<%d>:%s:%d: " FMT, LVL, __FUNCTION__, __LINE__, ##ARG); \
-	}
+#define DBG(LVL,FMT,ARG...) \
+  if (LVL <= debug_level) { \
+    \
+    fprintf(stderr, PROG_NAME"<%d>:%s:%d: " FMT, LVL, __FUNCTION__, __LINE__, ##ARG); \
+  }
 #endif
 #endif
 
 #ifdef _MSC_VER
-	#define CRIT(FMT, ...) { \
-	fprintf(stderr, PROG_NAME " Critical:%s:%d: " FMT, __FUNCTION__, __LINE__, __VA_ARGS__); \
-	}
+#define CRIT(FMT, ...) { \
+    fprintf(stderr, PROG_NAME " Critical:%s:%d: " FMT, __FUNCTION__, __LINE__, __VA_ARGS__); \
+  }
 #else
-	#define CRIT(FMT,ARG...) { \
-	fprintf(stderr, PROG_NAME " Critical:%s:%d: " FMT, __FUNCTION__, __LINE__, ##ARG); \
-	}
+#define CRIT(FMT,ARG...) { \
+    fprintf(stderr, PROG_NAME " Critical:%s:%d: " FMT, __FUNCTION__, __LINE__, ##ARG); \
+  }
 #endif
 
 #ifdef _MSC_VER
-	#define VT_ERROR(FMT, ...) { \
-		fprintf(stderr, PROG_NAME " ERROR:%s:%d: " FMT, __FUNCTION__, __LINE__, __VA_ARGS__); \
-	}
+#define VT_ERROR(FMT, ...) { \
+    fprintf(stderr, PROG_NAME " ERROR:%s:%d: " FMT, __FUNCTION__, __LINE__, __VA_ARGS__); \
+  }
 #else
 #define VT_ERROR(FMT,ARG...) { \
-	fprintf(stderr, PROG_NAME " ERROR:%s:%d: " FMT, __FUNCTION__, __LINE__, ##ARG); \
-	}
+    fprintf(stderr, PROG_NAME " ERROR:%s:%d: " FMT, __FUNCTION__, __LINE__, ##ARG); \
+  }
 #endif
 
 #ifdef _MSC_VER
-	#define WARN(FMT, ...) { \
-		fprintf(stderr, PROG_NAME " Warning:%s:%d: " FMT, __FUNCTION__, __LINE__, __VA_ARGS__); \
-	}
+#define WARN(FMT, ...) { \
+    fprintf(stderr, PROG_NAME " Warning:%s:%d: " FMT, __FUNCTION__, __LINE__, __VA_ARGS__); \
+  }
 #else
 #define WARN(FMT,ARG...) { \
-	fprintf(stderr, PROG_NAME " Warning:%s:%d: " FMT, __FUNCTION__, __LINE__, ##ARG); \
-	}
+    fprintf(stderr, PROG_NAME " Warning:%s:%d: " FMT, __FUNCTION__, __LINE__, ##ARG); \
+  }
 #endif
 
 #ifdef _MSC_VER
-	#define INFO(FMT, ...) { \
-		fprintf(stderr, PROG_NAME " Info:%s:%d: " FMT, __FUNCTION__, __LINE__, __VA_ARGS__); \
-		}
+#define INFO(FMT, ...) { \
+    fprintf(stderr, PROG_NAME " Info:%s:%d: " FMT, __FUNCTION__, __LINE__, __VA_ARGS__); \
+  }
 #else
 #define INFO(FMT,ARG...) { \
-	fprintf(stderr, PROG_NAME " Info:%s:%d: " FMT, __FUNCTION__, __LINE__, ##ARG); \
-}
+    fprintf(stderr, PROG_NAME " Info:%s:%d: " FMT, __FUNCTION__, __LINE__, ##ARG); \
+  }
 #endif
-	
+
 #ifdef _MSC_VER
 #define VT_ERROR_FATAL(FMT, ...) { CRIT(FMT, __VA_ARGS__); BUG(); }
 #else
@@ -150,17 +150,17 @@ extern int debug_level;
 #define CCALL __cdecl
 #pragma section(".CRT$XCU",read)
 #define INITIALIZER(f) \
-	static void __cdecl f(void); \
-	__declspec(allocate(".CRT$XCU")) void(__cdecl*f##_)(void) = f; \
-	static void __cdecl f(void)
+  static void __cdecl f(void); \
+  __declspec(allocate(".CRT$XCU")) void(__cdecl*f##_)(void) = f; \
+  static void __cdecl f(void)
 #define likely(x)      x
 #define unlikely(x)    x
 #elif defined(__GNUC__)
 
 #define CCALL
 #define INITIALIZER(f) \
-	static void f(void) __attribute__((constructor));\
-	static void f(void)
+  static void f(void) __attribute__((constructor));\
+  static void f(void)
 
 #define likely(x)       __builtin_expect((x),1)
 #define unlikely(x)     __builtin_expect((x),0)
@@ -185,14 +185,14 @@ extern int debug_level;
 #endif
 #endif
 
-/* Force a compilation VT_ERROR if condition is true, but also produce a 
-   result (of value 0 and type size_t), so the expression can *be used 
-   e.g. in a structure initializer (or where-ever else comma expressions 
-   aren't permitted). */ 
-#define BUILD_BUG_ON_ZERO(e) (sizeof(struct { int:-!!(e); })) 
+/* Force a compilation VT_ERROR if condition is true, but also produce a
+   result (of value 0 and type size_t), so the expression can *be used
+   e.g. in a structure initializer (or where-ever else comma expressions
+   aren't permitted). */
+#define BUILD_BUG_ON_ZERO(e) (sizeof(struct { int:-!!(e); }))
 
-/* &a[0] degrades to a pointer: a different type from an array */ 
-#define __must_be_array(a) BUILD_BUG_ON_ZERO(__builtin_types_compatible_p(typeof(a), typeof(&a[0]))) 
+/* &a[0] degrades to a pointer: a different type from an array */
+#define __must_be_array(a) BUILD_BUG_ON_ZERO(__builtin_types_compatible_p(typeof(a), typeof(&a[0])))
 
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]) + __must_be_array(arr))
 

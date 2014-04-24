@@ -20,17 +20,15 @@ limitations under the License.
 
 int debug_level = 0;
 
-void VtDebug_setDebugLevel(int level)
-{
-	debug_level = level;
+void VtDebug_setDebugLevel(int level) {
+  debug_level = level;
 }
 
 #if 0
-static void __init__(102) VtDebug_init(void)
-{
-	char *level = getenv("VT_DEBUG");
-	if (level) {
-		debug_level = atoi(level);
-	}
+static void __init__(102) VtDebug_init(void) {
+  char *level = getenv("VT_DEBUG");
+  if (level) {
+    debug_level = atoi(level);
+  }
 }
 #endif

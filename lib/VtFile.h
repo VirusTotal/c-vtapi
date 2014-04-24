@@ -63,7 +63,7 @@ void VtFile_put(struct VtFile **FileScan);
 
 /**
  * @brief Set API Key
- * 
+ *
  * @param file_obj VtFile object pointer
  * @param api_key  Your API key
  * @return void
@@ -107,7 +107,7 @@ int VtFile_scan(struct VtFile *file_obj, const char *file_path);
  * @return int
  */
 int VtFile_rescanHash(struct VtFile *file_obj, const char *hash,
-	time_t date, int period, int repeat, const char *notify_url, bool notify_changes_only);
+                      time_t date, int period, int repeat, const char *notify_url, bool notify_changes_only);
 
 /**
  * @brief Delete a scheduled rescan task
@@ -118,7 +118,7 @@ int VtFile_rescanHash(struct VtFile *file_obj, const char *hash,
  */
 
 int VtFile_rescanDelete(struct VtFile *file_obj,
- const char *hash);
+                        const char *hash);
 
 /**
  * @brief Fetch Report on a resource
@@ -142,8 +142,8 @@ struct VtResponse * VtFile_getResponse(struct VtFile *file_obj);
  * @return int
  */
 int VtFile_search(struct VtFile *file_obj, const char *query,
-	void (*cb)(const char *resource, void *data),
-	void *user_data);
+                  void (*cb)(const char *resource, void *data),
+                  void *user_data);
 
 #ifdef JANSSON_H
 
@@ -160,8 +160,8 @@ int VtFile_search(struct VtFile *file_obj, const char *query,
  * @return int.  0 for OK or error code
  */
 int VtFile_clusters(struct VtFile *file_obj, const char *cluster_date,
-	void (*cb)(json_t *cluster_json, void *data),
-	void *user_data);
+                    void (*cb)(json_t *cluster_json, void *data),
+                    void *user_data);
 #endif
 
 
@@ -176,7 +176,7 @@ int VtFile_clusters(struct VtFile *file_obj, const char *cluster_date,
  * @return int.  0 for OK or error code
  */
 int VtFile_download(struct VtFile *file_obj, const char *hash,
-	size_t (*cb)(char *ptr, size_t size, size_t nmemb, void *userdata), void *user_data);
+                    size_t (*cb)(char *ptr, size_t size, size_t nmemb, void *userdata), void *user_data);
 
 /**
  * @brief Download and save to a file

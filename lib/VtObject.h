@@ -29,7 +29,7 @@ extern "C" {
 #include "vtcapi_common.h"
 
 /**
-* @defgroup VtObject VtObject base object 
+* @defgroup VtObject VtObject base object
 * @{
 */
 
@@ -45,37 +45,37 @@ extern "C" {
 * @var mutex  for locking this object
 */
 #ifdef WINDOWS
-	#define VT_OBJECT_COMMON \
-	int id; \
-	int refcount; \
-	CRITICAL_SECTION mutex;  \
-	struct VtObject_ops *obj_ops
+#define VT_OBJECT_COMMON \
+  int id; \
+  int refcount; \
+  CRITICAL_SECTION mutex;  \
+  struct VtObject_ops *obj_ops
 
 #define VT_OBJECT_LOCK(obj)  do { \
-	DBG(3, "LOCKING obj %p\n", obj); \
-	WaitForSingleObject(&((struct VtObject*)obj)->mutex, INFINTE); \
-	DBG(3, "LOCKED %p\n", obj);  } while(0)
+    DBG(3, "LOCKING obj %p\n", obj); \
+    WaitForSingleObject(&((struct VtObject*)obj)->mutex, INFINTE); \
+    DBG(3, "LOCKED %p\n", obj);  } while(0)
 
 #define VT_OBJECT_UNLOCK(obj) do { \
-	ReleaseMutex(&((struct VtObject*)obj)->mutex); \
-	DBG(3, "UNLOCKED %p\n", obj); } while(0)
+    ReleaseMutex(&((struct VtObject*)obj)->mutex); \
+    DBG(3, "UNLOCKED %p\n", obj); } while(0)
 
 #else
-	#define VT_OBJECT_COMMON \
-	int id; \
-	int refcount; \
-	pthread_mutex_t mutex;  \
-	struct VtObject_ops *obj_ops
+#define VT_OBJECT_COMMON \
+  int id; \
+  int refcount; \
+  pthread_mutex_t mutex;  \
+  struct VtObject_ops *obj_ops
 
 #define VT_OBJECT_LOCK(obj)  do { \
-	DBG(3, "LOCKING obj %p\n", obj); \
-	pthread_mutex_lock(&((struct VtObject*)obj)->mutex); \
-	DBG(3, "LOCKED %p\n", obj);  } while (0)
+    DBG(3, "LOCKING obj %p\n", obj); \
+    pthread_mutex_lock(&((struct VtObject*)obj)->mutex); \
+    DBG(3, "LOCKED %p\n", obj);  } while (0)
 
 #define VT_OBJECT_UNLOCK(obj) do { \
-	pthread_mutex_unlock(&((struct VtObject*)obj)->mutex); \
-	DBG(3, "UNLOCKED %p\n", obj);\
-	} while (0)
+    pthread_mutex_unlock(&((struct VtObject*)obj)->mutex); \
+    DBG(3, "UNLOCKED %p\n", obj);\
+  } while (0)
 
 #endif
 
@@ -95,10 +95,9 @@ struct VtObject_ops;
 * @brief This is a base object that all other object will inherit
 * it features a unique ID per object and reference counters
 */
-struct VtObject
-{
-	/** Base class members */
-	VT_OBJECT_COMMON;
+struct VtObject {
+  /** Base class members */
+  VT_OBJECT_COMMON;
 };
 
 
@@ -106,41 +105,40 @@ struct VtObject
 * @struct VtObject_ops
 * @brief VtObject operations, defines various VtObject properties and callbacks.
 */
-struct VtObject_ops
-{
-	/** Unique type name of the object */
-	char * obj_type;
+struct VtObject_ops {
+  /** Unique type name of the object */
+  char * obj_type;
 
-	/** Size of object */
-	size_t obj_size;
+  /** Size of object */
+  size_t obj_size;
 
-	/**
-	* Optional callback to init/allocate any private data
-	*/
-	int (*obj_constructor)(struct VtObject *);
+  /**
+  * Optional callback to init/allocate any private data
+  */
+  int (*obj_constructor)(struct VtObject *);
 
-	/**
-	* Optional callback to free any private data
-	*/
-	int (*obj_destructor)(struct VtObject *);
+  /**
+  * Optional callback to free any private data
+  */
+  int (*obj_destructor)(struct VtObject *);
 
-	/*optional callback to clone private data */
-	int (*obj_clone)(struct VtObject *dst, struct VtObject *src);
-	
-	/** optional callback to compare two objects
-	 @return 0 if equal. -1, 1 see man qsort()
-	*/
-	int (*obj_compare)(const struct VtObject *dst,const struct VtObject *src);
+  /*optional callback to clone private data */
+  int (*obj_clone)(struct VtObject *dst, struct VtObject *src);
+
+  /** optional callback to compare two objects
+   @return 0 if equal. -1, 1 see man qsort()
+  */
+  int (*obj_compare)(const struct VtObject *dst,const struct VtObject *src);
 
 
-	/** optional callback to create from JSON
-	 @return 0 if equal. -1, 1 see man qsort()
-	*/
-	int (*obj_from_json)(struct VtObject *, json_t *src);
+  /** optional callback to create from JSON
+   @return 0 if equal. -1, 1 see man qsort()
+  */
+  int (*obj_from_json)(struct VtObject *, json_t *src);
 
-	json_t * (*obj_to_json)(struct VtObject *, int flags);
+  json_t * (*obj_to_json)(struct VtObject *, int flags);
 
-	char * (*obj_to_json_str)(struct VtObject *);
+  char * (*obj_to_json_str)(struct VtObject *);
 
 };
 

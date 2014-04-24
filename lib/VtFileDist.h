@@ -125,8 +125,8 @@ int VtFileDist_getDistribution(struct VtFileDist *vt_dist);
  * @return int 0 for OK, or error code
  */
 int VtFileDist_process(struct VtFileDist* vt_dist,
-	void (*cb)(const char *url, unsigned long long timestamp, const char *sha256hash, const char *name, json_t *raw_json, void *data),
-	void *user_data);
+                       void (*cb)(const char *url, unsigned long long timestamp, const char *sha256hash, const char *name, json_t *raw_json, void *data),
+                       void *user_data);
 
 /**
  *  @}

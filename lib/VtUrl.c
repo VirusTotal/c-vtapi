@@ -45,9 +45,8 @@ limitations under the License.
 
 #include "vtcapi_common.h"
 
-struct VtUrl
-{
-	API_OBJECT_COMMON;
+struct VtUrl {
+  API_OBJECT_COMMON;
 };
 
 
@@ -60,13 +59,12 @@ struct VtUrl
 *  VtObjects constructor
 *  @arg VtObject that was just allocated
 */
-int VtUrl_constructor(struct VtObject *obj)
-{
-	struct VtUrl *vt_url = (struct VtUrl *)obj;
+int VtUrl_constructor(struct VtObject *obj) {
+  struct VtUrl *vt_url = (struct VtUrl *)obj;
 
-	DBG(DGB_LEVEL_MEM, " constructor %p\n", vt_url);
+  DBG(DGB_LEVEL_MEM, " constructor %p\n", vt_url);
 
-	return 0;
+  return 0;
 }
 
 
@@ -74,14 +72,13 @@ int VtUrl_constructor(struct VtObject *obj)
 *  VtObjects destructor
 *  @arg VtObject that is going to be free'd
 */
-int VtUrl_destructor(struct VtObject *obj)
-{
-	struct VtUrl *vt_url = (struct VtUrl *)obj;
+int VtUrl_destructor(struct VtObject *obj) {
+  struct VtUrl *vt_url = (struct VtUrl *)obj;
 
-	DBG(DGB_LEVEL_MEM, " destructor %p\n", vt_url);
-	
-	// Parent destructor
-	return VtApiPage_destructor((struct VtObject *)obj);	
+  DBG(DGB_LEVEL_MEM, " destructor %p\n", vt_url);
+
+  // Parent destructor
+  return VtApiPage_destructor((struct VtObject *)obj);
 }
 
 
@@ -90,261 +87,253 @@ int VtUrl_destructor(struct VtObject *obj)
 
 
 static struct VtObject_ops obj_ops = {
-	.obj_type           = "VtUrl",
-	.obj_size           = sizeof(struct VtUrl),
-	.obj_constructor    = VtUrl_constructor,
-	.obj_destructor     = VtUrl_destructor,
+  .obj_type           = "VtUrl",
+  .obj_size           = sizeof(struct VtUrl),
+  .obj_constructor    = VtUrl_constructor,
+  .obj_destructor     = VtUrl_destructor,
 // 	.obj_from_json      = VtUrl_objectFromJSON,
 };
 
-static struct VtUrl* VtUrl_alloc(struct VtObject_ops *ops)
-{
-	struct VtUrl *url_scan;
+static struct VtUrl* VtUrl_alloc(struct VtObject_ops *ops) {
+  struct VtUrl *url_scan;
 
-	url_scan = (struct VtUrl*) VtObject_alloc(ops);
-	return url_scan;
+  url_scan = (struct VtUrl*) VtObject_alloc(ops);
+  return url_scan;
 }
 
 
-struct VtUrl* VtUrl_new(void)
-{
-	struct VtUrl *url_scan = VtUrl_alloc(&obj_ops);
+struct VtUrl* VtUrl_new(void) {
+  struct VtUrl *url_scan = VtUrl_alloc(&obj_ops);
 
-	return url_scan;
+  return url_scan;
 }
 
 /** Get a reference counter */
-void VtUrl_get(struct VtUrl *url_scan)
-{
-	VtObject_get((struct VtObject*) url_scan);
+void VtUrl_get(struct VtUrl *url_scan) {
+  VtObject_get((struct VtObject*) url_scan);
 }
 
 /** put a reference counter */
-void VtUrl_put(struct VtUrl **url_scan)
-{
-	VtApiPage_put((struct VtApiPage**) url_scan);
+void VtUrl_put(struct VtUrl **url_scan) {
+  VtApiPage_put((struct VtApiPage**) url_scan);
 }
 
-void VtUrl_setApiKey(struct VtUrl *vt_url, const char *api_key)
-{
-	// Call parent function
-	VtApiPage_setApiKey((struct VtApiPage *)vt_url, api_key);
+void VtUrl_setApiKey(struct VtUrl *vt_url, const char *api_key) {
+  // Call parent function
+  VtApiPage_setApiKey((struct VtApiPage *)vt_url, api_key);
 }
 
 
-struct VtResponse * VtUrl_getResponse(struct VtUrl *vt_url)
-{
-	VtResponse_get(vt_url->response);
-	return vt_url->response;
+struct VtResponse * VtUrl_getResponse(struct VtUrl *vt_url) {
+  VtResponse_get(vt_url->response);
+  return vt_url->response;
 }
 
-int VtUrl_scan(struct VtUrl *vt_url, const char *url)
-{
+int VtUrl_scan(struct VtUrl *vt_url, const char *url) {
 
-	CURL *curl;
-	CURLcode res;
-	int ret = 0;
-	struct curl_httppost *formpost=NULL;
-	struct curl_httppost *lastptr=NULL;
-	struct curl_slist *headerlist=NULL;
-	static const char header_buf[] = "Expect:";
+  CURL *curl;
+  CURLcode res;
+  int ret = 0;
+  struct curl_httppost *formpost=NULL;
+  struct curl_httppost *lastptr=NULL;
+  struct curl_slist *headerlist=NULL;
+  static const char header_buf[] = "Expect:";
 
-	VtApiPage_resetBuffer((struct VtApiPage *) vt_url);
-	curl = curl_easy_init();
-	if (!curl) {
-		VT_ERROR("init curl\n");
-		goto cleanup;
-	}
-	// initialize custom header list (stating that Expect: 100-continue is not wanted
-	headerlist = curl_slist_append(headerlist, header_buf);
+  VtApiPage_resetBuffer((struct VtApiPage *) vt_url);
+  curl = curl_easy_init();
+  if (!curl) {
+    VT_ERROR("init curl\n");
+    goto cleanup;
+  }
+  // initialize custom header list (stating that Expect: 100-continue is not wanted
+  headerlist = curl_slist_append(headerlist, header_buf);
 
-	DBG(1, "Api Key =  '%s'\n", vt_url->api_key);
+  DBG(1, "Api Key =  '%s'\n", vt_url->api_key);
 
-	ret = curl_formadd(&formpost,
-				 &lastptr,
-			  CURLFORM_COPYNAME, "url",
-			  CURLFORM_COPYCONTENTS,  url,
-			  CURLFORM_END);
-	if (ret)
-		VT_ERROR("Adding file %s\n", url);
-	
-	/* Fill in the filename field */ 
-	ret = curl_formadd(&formpost,
-				 &lastptr,
-			  CURLFORM_COPYNAME, "url",
-			  CURLFORM_COPYCONTENTS, url,
-			  CURLFORM_END);
-	if (ret)
-		VT_ERROR("Adding url %s\n", url);
+  ret = curl_formadd(&formpost,
+                     &lastptr,
+                     CURLFORM_COPYNAME, "url",
+                     CURLFORM_COPYCONTENTS,  url,
+                     CURLFORM_END);
+  if (ret)
+    VT_ERROR("Adding file %s\n", url);
 
-	ret = curl_formadd(&formpost,
-				 &lastptr,
-			  CURLFORM_COPYNAME, "apikey",
-			  CURLFORM_COPYCONTENTS, vt_url->api_key,
-			  CURLFORM_END);
+  /* Fill in the filename field */
+  ret = curl_formadd(&formpost,
+                     &lastptr,
+                     CURLFORM_COPYNAME, "url",
+                     CURLFORM_COPYCONTENTS, url,
+                     CURLFORM_END);
+  if (ret)
+    VT_ERROR("Adding url %s\n", url);
 
-	if (ret)
-		VT_ERROR("Adding key\n");
+  ret = curl_formadd(&formpost,
+                     &lastptr,
+                     CURLFORM_COPYNAME, "apikey",
+                     CURLFORM_COPYCONTENTS, vt_url->api_key,
+                     CURLFORM_END);
 
-	curl_easy_setopt(curl, CURLOPT_URL, VT_API_BASE_URL "url/scan");
+  if (ret)
+    VT_ERROR("Adding key\n");
+
+  curl_easy_setopt(curl, CURLOPT_URL, VT_API_BASE_URL "url/scan");
 
 #ifdef DISABLE_HTTPS_VALIDATION
-	curl_easy_setopt(curl,CURLOPT_SSL_VERIFYPEER,0L); // disable validation
-	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+  curl_easy_setopt(curl,CURLOPT_SSL_VERIFYPEER,0L); // disable validation
+  curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
 #endif
 
-	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
-	curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost); // set form
+  curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
+  curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost); // set form
 
-	/* enable verbose for easier tracing */
-    if (debug_level)
-		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-	
-	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, __VtApiPage_WriteCb); // callback for data
-	curl_easy_setopt(curl, CURLOPT_WRITEDATA, vt_url); // user arg
+  /* enable verbose for easier tracing */
+  if (debug_level)
+    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+
+  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, __VtApiPage_WriteCb); // callback for data
+  curl_easy_setopt(curl, CURLOPT_WRITEDATA, vt_url); // user arg
 
 
-	/* Perform the request, res will get the return code */
-	res = curl_easy_perform(curl);
-	DBG(1, "Perform done\n");
-	/* Check for VT_ERRORs */
-	if(res != CURLE_OK) {
-		VT_ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
-		goto cleanup;
-	}
+  /* Perform the request, res will get the return code */
+  res = curl_easy_perform(curl);
+  DBG(1, "Perform done\n");
+  /* Check for VT_ERRORs */
+  if(res != CURLE_OK) {
+    VT_ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+    goto cleanup;
+  }
 
-	DBG(1, "Page:\n%s\n",vt_url->buffer);
+  DBG(1, "Page:\n%s\n",vt_url->buffer);
 
-		// if a previous response
-	if (vt_url->response)
-		VtResponse_put(&vt_url->response);   // relase reference counter
+  // if a previous response
+  if (vt_url->response)
+    VtResponse_put(&vt_url->response);   // relase reference counter
 
-	vt_url->response = VtResponse_new();
-	ret = VtResponse_fromJSONstr(vt_url->response, vt_url->buffer);
-	if (ret) {
-		VT_ERROR("Parsing JSON\n");
-		goto cleanup;
-	}
+  vt_url->response = VtResponse_new();
+  ret = VtResponse_fromJSONstr(vt_url->response, vt_url->buffer);
+  if (ret) {
+    VT_ERROR("Parsing JSON\n");
+    goto cleanup;
+  }
 
 cleanup:
-	/* always cleanup */
-	curl_easy_cleanup(curl);
+  /* always cleanup */
+  curl_easy_cleanup(curl);
 
-	if (formpost)
-		curl_formfree(formpost);  // cleanup the formpost chain
+  if (formpost)
+    curl_formfree(formpost);  // cleanup the formpost chain
 
-	if (headerlist)
-		curl_slist_free_all (headerlist); // free headers
-	
-	return ret;
+  if (headerlist)
+    curl_slist_free_all (headerlist); // free headers
+
+  return ret;
 }
 
 
-int VtUrl_report(struct VtUrl *vt_url, const char *resource, bool scan, bool all_info)
-{
-	
-	CURL *curl;
-	CURLcode res;
-	int ret = 0;
-	struct curl_httppost *formpost = NULL;
-	struct curl_httppost *lastptr = NULL;
-	struct curl_slist *headerlist = NULL;
-	static const char header_buf[] = "Expect:";
+int VtUrl_report(struct VtUrl *vt_url, const char *resource, bool scan, bool all_info) {
 
-	VtApiPage_resetBuffer((struct VtApiPage *) vt_url);
-	curl = curl_easy_init();
-	if (!curl) {
-		VT_ERROR("init curl\n");
-		goto cleanup;
-	}
-	// initialize custom header list (stating that Expect: 100-continue is not wanted
-	headerlist = curl_slist_append(headerlist, header_buf);
-	DBG(1, "Api Key =  '%s'\n", vt_url->api_key);
-	
-	ret = curl_formadd(&formpost,
-					   &lastptr,
-					   CURLFORM_COPYNAME, "resource",
-					   CURLFORM_COPYCONTENTS,  resource,
-					   CURLFORM_END);
-	if (ret)
-		VT_ERROR("Adding resource %s\n", resource);
-	
-	
-	ret = curl_formadd(&formpost,
-					   &lastptr,
-					   CURLFORM_COPYNAME, "apikey",
-					   CURLFORM_COPYCONTENTS, vt_url->api_key,
-					   CURLFORM_END);
-	if (ret)
-		VT_ERROR("Adding key\n");
+  CURL *curl;
+  CURLcode res;
+  int ret = 0;
+  struct curl_httppost *formpost = NULL;
+  struct curl_httppost *lastptr = NULL;
+  struct curl_slist *headerlist = NULL;
+  static const char header_buf[] = "Expect:";
 
-	if (scan) {
-		ret = curl_formadd(&formpost,
-			&lastptr,
-			CURLFORM_COPYNAME, "scan",
-			CURLFORM_COPYCONTENTS, "1",
-			CURLFORM_END);
-	}
+  VtApiPage_resetBuffer((struct VtApiPage *) vt_url);
+  curl = curl_easy_init();
+  if (!curl) {
+    VT_ERROR("init curl\n");
+    goto cleanup;
+  }
+  // initialize custom header list (stating that Expect: 100-continue is not wanted
+  headerlist = curl_slist_append(headerlist, header_buf);
+  DBG(1, "Api Key =  '%s'\n", vt_url->api_key);
 
-	if (all_info) {
-		ret = curl_formadd(&formpost,
-					&lastptr,
-					CURLFORM_COPYNAME, "all_info",
-					CURLFORM_COPYCONTENTS, "1",
-					CURLFORM_END);
-	}
-	
-	
-	curl_easy_setopt(curl, CURLOPT_URL, VT_API_BASE_URL "url/report");
-	
+  ret = curl_formadd(&formpost,
+                     &lastptr,
+                     CURLFORM_COPYNAME, "resource",
+                     CURLFORM_COPYCONTENTS,  resource,
+                     CURLFORM_END);
+  if (ret)
+    VT_ERROR("Adding resource %s\n", resource);
+
+
+  ret = curl_formadd(&formpost,
+                     &lastptr,
+                     CURLFORM_COPYNAME, "apikey",
+                     CURLFORM_COPYCONTENTS, vt_url->api_key,
+                     CURLFORM_END);
+  if (ret)
+    VT_ERROR("Adding key\n");
+
+  if (scan) {
+    ret = curl_formadd(&formpost,
+                       &lastptr,
+                       CURLFORM_COPYNAME, "scan",
+                       CURLFORM_COPYCONTENTS, "1",
+                       CURLFORM_END);
+  }
+
+  if (all_info) {
+    ret = curl_formadd(&formpost,
+                       &lastptr,
+                       CURLFORM_COPYNAME, "all_info",
+                       CURLFORM_COPYCONTENTS, "1",
+                       CURLFORM_END);
+  }
+
+
+  curl_easy_setopt(curl, CURLOPT_URL, VT_API_BASE_URL "url/report");
+
 #ifdef DISABLE_HTTPS_VALIDATION
-	curl_easy_setopt(curl,CURLOPT_SSL_VERIFYPEER,0L); // disable validation
-	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+  curl_easy_setopt(curl,CURLOPT_SSL_VERIFYPEER,0L); // disable validation
+  curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
 #endif
-	
-	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
-	curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost); // set form
-	
-	/* enable verbose for easier tracing */
-    if (debug_level)
-		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 
-	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, __VtApiPage_WriteCb); // callback for data
-	curl_easy_setopt(curl, CURLOPT_WRITEDATA, vt_url); // user arg
+  curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
+  curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost); // set form
 
-	
-	/* Perform the request, res will get the return code */
-	res = curl_easy_perform(curl);
-	DBG(1, "Perform done\n");
-	/* Check for VT_ERRORs */
-	if(res != CURLE_OK) {
-		VT_ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
-		goto cleanup;
-	}
-	
-	DBG(1, "Page:\n%s\n",vt_url->buffer);
+  /* enable verbose for easier tracing */
+  if (debug_level)
+    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 
-		// if a previous response
-	if (vt_url->response)
-		VtResponse_put(&vt_url->response);   // relase reference counter
-	vt_url->response = VtResponse_new();
-	ret = VtResponse_fromJSONstr(vt_url->response, vt_url->buffer);
-	if (ret) {
-		VT_ERROR("Parsing JSON\n");
-		goto cleanup;
-	}
-	
+  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, __VtApiPage_WriteCb); // callback for data
+  curl_easy_setopt(curl, CURLOPT_WRITEDATA, vt_url); // user arg
+
+
+  /* Perform the request, res will get the return code */
+  res = curl_easy_perform(curl);
+  DBG(1, "Perform done\n");
+  /* Check for VT_ERRORs */
+  if(res != CURLE_OK) {
+    VT_ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+    goto cleanup;
+  }
+
+  DBG(1, "Page:\n%s\n",vt_url->buffer);
+
+  // if a previous response
+  if (vt_url->response)
+    VtResponse_put(&vt_url->response);   // relase reference counter
+  vt_url->response = VtResponse_new();
+  ret = VtResponse_fromJSONstr(vt_url->response, vt_url->buffer);
+  if (ret) {
+    VT_ERROR("Parsing JSON\n");
+    goto cleanup;
+  }
+
 cleanup:
-	/* always cleanup */
-	curl_easy_cleanup(curl);
-	
-	if (formpost)
-		curl_formfree(formpost);  // cleanup the formpost chain
-	
-	if (headerlist)
-		curl_slist_free_all (headerlist); // free headers
-	
-	return ret;
+  /* always cleanup */
+  curl_easy_cleanup(curl);
+
+  if (formpost)
+    curl_formfree(formpost);  // cleanup the formpost chain
+
+  if (headerlist)
+    curl_slist_free_all (headerlist); // free headers
+
+  return ret;
 }
 
 

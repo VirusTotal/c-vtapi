@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#ifndef VT_IP_ADDR_H 
+#ifndef VT_IP_ADDR_H
 #define VT_IP_ADDR_H 1
 
 #ifdef  __cplusplus
@@ -33,7 +33,7 @@ struct VtResponse;
 
 /**
  * @brief Create new Object
- * 
+ *
  * @return VtIpAddr object pointer. or null on erro
  */
 struct VtIpAddr* VtIpAddr_new(void);
@@ -58,7 +58,7 @@ void VtIpAddr_put(struct VtIpAddr **obj);
 
 /**
  * @brief Set API KEY
- * 
+ *
  * @param vt_ip_addr ...
  * @param api_key Your API Kety
  * @return void
@@ -77,7 +77,7 @@ struct VtResponse * VtIpAddr_getResponse(struct VtIpAddr *vt_ip_addr);
 
 /**
  * @brief Get the report on a IP address
- * 
+ *
  * @param vt_ip_addr ...
  * @param ip_addr_str ...
  * @return int.  0 for OK, or error code

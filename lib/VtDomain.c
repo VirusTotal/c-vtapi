@@ -45,9 +45,8 @@ limitations under the License.
 
 #include "vtcapi_common.h"
 
-struct VtDomain
-{
-	API_OBJECT_COMMON;
+struct VtDomain {
+  API_OBJECT_COMMON;
 
 };
 
@@ -61,13 +60,12 @@ struct VtDomain
 *  VtObjects constructor
 *  @arg VtObject that was just allocated
 */
-int VtDomain_constructor(struct VtObject *obj)
-{
-	struct VtDomain *vt_domain = (struct VtDomain *)obj;
+int VtDomain_constructor(struct VtObject *obj) {
+  struct VtDomain *vt_domain = (struct VtDomain *)obj;
 
-	DBG(DGB_LEVEL_MEM, " constructor %p\n", vt_domain);
+  DBG(DGB_LEVEL_MEM, " constructor %p\n", vt_domain);
 
-	return 0;
+  return 0;
 }
 
 
@@ -75,14 +73,13 @@ int VtDomain_constructor(struct VtObject *obj)
 *  VtObjects destructor
 *  @arg VtObject that is going to be free'd
 */
-int VtDomain_destructor(struct VtObject *obj)
-{
-	struct VtDomain *vt_domain = (struct VtDomain *)obj;
+int VtDomain_destructor(struct VtObject *obj) {
+  struct VtDomain *vt_domain = (struct VtDomain *)obj;
 
-	DBG(DGB_LEVEL_MEM, " destructor %p\n", vt_domain);
+  DBG(DGB_LEVEL_MEM, " destructor %p\n", vt_domain);
 
-	// Parent destructor
-	return VtApiPage_destructor((struct VtObject *)obj);	
+  // Parent destructor
+  return VtApiPage_destructor((struct VtObject *)obj);
 }
 
 
@@ -91,129 +88,122 @@ int VtDomain_destructor(struct VtObject *obj)
 
 
 static struct VtObject_ops obj_ops = {
-	.obj_type           = "VtDomain",
-	.obj_size           = sizeof(struct VtDomain),
-	.obj_constructor    = VtDomain_constructor,
-	.obj_destructor     = VtDomain_destructor,
+  .obj_type           = "VtDomain",
+  .obj_size           = sizeof(struct VtDomain),
+  .obj_constructor    = VtDomain_constructor,
+  .obj_destructor     = VtDomain_destructor,
 };
 
-static struct VtDomain* VtDomain_alloc(struct VtObject_ops *ops)
-{
-	struct VtDomain *vt_domain;
+static struct VtDomain* VtDomain_alloc(struct VtObject_ops *ops) {
+  struct VtDomain *vt_domain;
 
-	vt_domain = (struct VtDomain*) VtObject_alloc(ops);
-	return vt_domain;
+  vt_domain = (struct VtDomain*) VtObject_alloc(ops);
+  return vt_domain;
 }
 
 
-struct VtDomain* VtDomain_new(void)
-{
-	struct VtDomain *vt_domain = VtDomain_alloc(&obj_ops);
+struct VtDomain* VtDomain_new(void) {
+  struct VtDomain *vt_domain = VtDomain_alloc(&obj_ops);
 
-	return vt_domain;
+  return vt_domain;
 }
 
 /** Get a reference counter */
-void VtDomain_get(struct VtDomain *obj)
-{
-	VtObject_get((struct VtObject*) obj);
+void VtDomain_get(struct VtDomain *obj) {
+  VtObject_get((struct VtObject*) obj);
 }
 
 /** put a reference counter */
-void VtDomain_put(struct VtDomain **obj)
-{
-	VtApiPage_put((struct VtApiPage**) obj);
+void VtDomain_put(struct VtDomain **obj) {
+  VtApiPage_put((struct VtApiPage**) obj);
 }
 
-void VtDomain_setApiKey(struct VtDomain *vt_domain, const char *api_key)
-{
-	// Call parent function
-	VtApiPage_setApiKey((struct VtApiPage *)vt_domain, api_key);
+void VtDomain_setApiKey(struct VtDomain *vt_domain, const char *api_key) {
+  // Call parent function
+  VtApiPage_setApiKey((struct VtApiPage *)vt_domain, api_key);
 }
 
 
-struct VtResponse * VtDomain_getResponse(struct VtDomain *vt_domain)
-{
-	
-	if (vt_domain->response) {
-		VtResponse_get(vt_domain->response);
-		return vt_domain->response;
-	} 
+struct VtResponse * VtDomain_getResponse(struct VtDomain *vt_domain) {
 
-	return NULL;
+  if (vt_domain->response) {
+    VtResponse_get(vt_domain->response);
+    return vt_domain->response;
+  }
+
+  return NULL;
 }
 
-int VtDomain_report(struct VtDomain *vt_domain, const char *ip_addr_str)
-{
+int VtDomain_report(struct VtDomain *vt_domain, const char *ip_addr_str) {
 
-	CURL *curl;
-	CURLcode res;
-	int ret = 0;
-	char get_url[512];
-	int len = 0;
+  CURL *curl;
+  CURLcode res;
+  int ret = 0;
+  char get_url[512];
+  int len = 0;
 
 
-	VtApiPage_resetBuffer((struct VtApiPage *) vt_domain);
-	curl = curl_easy_init();
-	if (!curl) {
-		VT_ERROR("init curl\n");
-		goto cleanup;
-	}
+  VtApiPage_resetBuffer((struct VtApiPage *) vt_domain);
+  curl = curl_easy_init();
+  if (!curl) {
+    VT_ERROR("init curl\n");
+    goto cleanup;
+  }
 
-	DBG(1, "Api Key =  '%s'\n", vt_domain->api_key);
+  DBG(1, "Api Key =  '%s'\n", vt_domain->api_key);
 
-	if (ret)
-		VT_ERROR("Adding key\n");
+  if (ret)
+    VT_ERROR("Adding key\n");
 
-	len = sprintf(get_url, VT_API_BASE_URL "domain/report?apikey=%s&domain=%s",
-		vt_domain->api_key, ip_addr_str);
-	if (len < 0) {
-		VT_ERROR("sprintf\n");
-		goto cleanup;
-	}
-	DBG(1, "URL=%s\n", get_url);
-	curl_easy_setopt(curl, CURLOPT_URL, get_url);
+  len = sprintf(get_url, VT_API_BASE_URL "domain/report?apikey=%s&domain=%s",
+                vt_domain->api_key, ip_addr_str);
+  if (len < 0) {
+    VT_ERROR("sprintf\n");
+    goto cleanup;
+  }
+  DBG(1, "URL=%s\n", get_url);
+  curl_easy_setopt(curl, CURLOPT_URL, get_url);
 
 #ifdef DISABLE_HTTPS_VALIDATION
-	curl_easy_setopt(curl,CURLOPT_SSL_VERIFYPEER,0L); // disable validation
-	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+  curl_easy_setopt(curl,CURLOPT_SSL_VERIFYPEER,0L); // disable validation
+  curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
 #endif
 
-	/* enable verbose for easier tracing */
-    if (debug_level)
-		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+  /* enable verbose for easier tracing */
+  if (debug_level)
+    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 
-	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, __VtApiPage_WriteCb); // callback for data
-	curl_easy_setopt(curl, CURLOPT_WRITEDATA, vt_domain); // user arg
+  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, __VtApiPage_WriteCb); // callback for data
+  curl_easy_setopt(curl, CURLOPT_WRITEDATA, vt_domain); // user arg
 
 
-	/* Perform the request, res will get the return code */
-	res = curl_easy_perform(curl);
-	DBG(1, "Perform done\n");
-	/* Check for VT_ERRORs */
-	if(res != CURLE_OK) {
-		VT_ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
-		goto cleanup;
-	}
+  /* Perform the request, res will get the return code */
+  res = curl_easy_perform(curl);
+  DBG(1, "Perform done\n");
+  /* Check for VT_ERRORs */
+  if(res != CURLE_OK) {
+    VT_ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+    goto cleanup;
+  }
 
-	DBG(1, "Page:\n%s\n",vt_domain->buffer);
+  DBG(1, "Page:\n%s\n",vt_domain->buffer);
 
-	// if a previous response
-	if (vt_domain->response)
-		VtResponse_put(&vt_domain->response);   // relase reference counter
+  // if a previous response
+  if (vt_domain->response)
+    VtResponse_put(&vt_domain->response);   // relase reference counter
 
-	vt_domain->response = VtResponse_new(); // new response object
+  vt_domain->response = VtResponse_new(); // new response object
 
-	ret = VtResponse_fromJSONstr(vt_domain->response, vt_domain->buffer);
-	if (ret) {
-		VT_ERROR("Parsing JSON\n");
-		goto cleanup;
-	}
+  ret = VtResponse_fromJSONstr(vt_domain->response, vt_domain->buffer);
+  if (ret) {
+    VT_ERROR("Parsing JSON\n");
+    goto cleanup;
+  }
 
 cleanup:
-	/* always cleanup */
-	curl_easy_cleanup(curl);
+  /* always cleanup */
+  curl_easy_cleanup(curl);
 
-	return ret;
+  return ret;
 }
 

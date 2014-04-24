@@ -52,7 +52,7 @@ void VtDomain_put(struct VtDomain **obj);
 
 /**
  * @brief Set API key
- * 
+ *
  * @param vt_domain VtDomain object
  * @param api_key your API key
  * @return void
@@ -69,10 +69,10 @@ struct VtResponse * VtDomain_getResponse(struct VtDomain *vt_domain);
 
 /**
  * @brief get the report on a domain
- * 
+ *
  * @param vt_domain ...
  * @param domain_name_str Domain Name to get report on
- * @return int.  0 for OK, or 
+ * @return int.  0 for OK, or
  */
 int VtDomain_report(struct VtDomain *vt_domain, const char *domain_name_str);
 

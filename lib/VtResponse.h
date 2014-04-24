@@ -42,7 +42,7 @@ struct VtResponse* VtResponse_new(void);
 
 /**
  * @brief Get a reference counter.
- * 
+ *
  * @param VtResponse Response object
  * @return void
  */
@@ -69,7 +69,7 @@ char *VtResponse_getString(struct VtResponse *response, const char *key);
 
 /**
  * @brief Get raw jansson response object
- * 
+ *
  * @param response borrowed json_t pointer.
  * @return json_t*
  */
