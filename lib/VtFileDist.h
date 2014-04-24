@@ -24,6 +24,14 @@ extern "C" {
 struct VtResponse;
 struct VtFileDist;
 
+
+/**
+ * @ingroup VtApiPage
+ * @defgroup VtFileDist VtFileDist File Distribution service.  Requires private-API with permissions
+ * @{
+ */
+
+
 struct VtFileDist* VtFileDist_new(void);
 
 
@@ -119,6 +127,10 @@ int VtFileDist_getDistribution(struct VtFileDist *vt_dist);
 int VtFileDist_process(struct VtFileDist* vt_dist,
 	void (*cb)(const char *url, unsigned long long timestamp, const char *sha256hash, const char *name, json_t *raw_json, void *data),
 	void *user_data);
+
+/**
+ *  @}
+ */
 
 
 #ifdef  __cplusplus
