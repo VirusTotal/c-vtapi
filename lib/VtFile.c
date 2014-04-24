@@ -30,6 +30,7 @@ limitations under the License.
 #include <sys/types.h>
 
 #if !defined(_WIN32) && !defined(_WIN64)
+#include <pthread.h>
 #include <unistd.h>
 #endif
 
@@ -54,6 +55,11 @@ limitations under the License.
 struct VtFile {
   API_OBJECT_COMMON;
   char *offset; // offset for use in search
+  bool cancel_operation;
+  int64_t dltotal;
+  int64_t dlnow;
+  int64_t ultotal;
+  int64_t ulnow;
 };
 
 
@@ -151,6 +157,57 @@ struct VtResponse * VtFile_getResponse(struct VtFile *file_scan) {
   return file_scan->response;
 }
 
+/* curl progress data for CURLOPT_XFERINFOFUNCTION callback  */
+static int xferinfo(void *p,
+                    curl_off_t dltotal, curl_off_t dlnow,
+                    curl_off_t ultotal, curl_off_t ulnow)
+{
+  struct VtFile *file = (struct VtFile *)p;
+
+  DBG(1, "UP: %" CURL_FORMAT_CURL_OFF_T " of %" CURL_FORMAT_CURL_OFF_T
+         "  DOWN: %" CURL_FORMAT_CURL_OFF_T " of %" CURL_FORMAT_CURL_OFF_T
+         "\r\n",
+         ulnow, ultotal, dlnow, dltotal);
+
+  VT_OBJECT_LOCK(file);
+  file->dltotal = dltotal;
+  file->dlnow = dlnow;
+  file->ultotal = ultotal;
+  file->ulnow = ulnow;
+  VT_OBJECT_UNLOCK(file);
+
+  if(file->cancel_operation)
+    return 1;
+  return 0;
+}
+
+/* for libcurl older than 7.32.0 (CURLOPT_PROGRESSFUNCTION) */
+static int older_progress(void *p,
+                          double dltotal, double dlnow,
+                          double ultotal, double ulnow)
+{
+  return xferinfo(p,
+                  (curl_off_t)dltotal,
+                  (curl_off_t)dlnow,
+                  (curl_off_t)ultotal,
+                  (curl_off_t)ulnow);
+}
+
+
+void VtFile_getProgress(struct VtFile *file, int64_t *dltotal, int64_t *dlnow, int64_t *ul_total, int64_t *ul_now)
+{
+  VT_OBJECT_LOCK(file);
+  *dltotal = file->dltotal;
+  *dlnow = file->dlnow;
+  *ul_total = file->ulnow;
+  *ul_now = file->ulnow;
+  VT_OBJECT_UNLOCK(file);
+}
+
+void VtFile_cancelOperation(struct VtFile* file) {
+  file->cancel_operation = true;
+}
+
 int VtFile_scan(struct VtFile *file_scan, const char *file_path) {
 
   CURL *curl;
@@ -203,6 +260,29 @@ int VtFile_scan(struct VtFile *file_scan, const char *file_path) {
 
   curl_easy_setopt(curl, CURLOPT_URL, VT_API_BASE_URL "file/scan");
 
+
+  curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, older_progress);
+  /* pass the struct pointer into the progress function */
+  curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, file_scan);
+
+  #if LIBCURL_VERSION_NUM >= 0x072000
+  /* xferinfo was introduced in 7.32.0, no earlier libcurl versions will
+   * compile as they won't have the symbols around.
+   *
+   * If built with a newer libcurl, but running with an older libcurl:
+   * curl_easy_setopt() will fail in run-time trying to set the new
+   * callback, making the older callback get used.
+   *
+   * New libcurls will prefer the new callback and instead use that one even
+   * if both callbacks are set. */
+
+  curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, xferinfo);
+  /* pass the struct pointer into the xferinfo function, note that this is
+   * an alias to CURLOPT_PROGRESSDATA */
+  curl_easy_setopt(curl, CURLOPT_XFERINFODATA, file_scan);
+  #endif
+
+  curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
 #ifdef DISABLE_HTTPS_VALIDATION
   curl_easy_setopt(curl,CURLOPT_SSL_VERIFYPEER,0L); // disable validation
   curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);

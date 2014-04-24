@@ -80,6 +80,29 @@ void VtFile_setApiKey(struct VtFile *file_obj, const char *api_key);
  */
 void VtFile_setOffset(struct VtFile *file_obj, const char *offset);
 
+
+/**
+ * @brief Get progress of upload/download
+ *
+ * @param file VTFil pointer
+ * @param dltotal total download size
+ * @param dlnow downloaded now
+ * @param ul_total upload total
+ * @param ul_now uploaded now
+ * @return void
+ */
+void VtFile_getProgress(struct VtFile *file, int64_t *dltotal, int64_t *dlnow, int64_t *ul_total, int64_t *ul_now);
+
+/**
+ * @brief Cancel current upload/download
+ *
+ * @param file ...
+ * @return int
+ */
+
+void VtFile_cancelOperation(VtFile* file);
+
+
 /**
  * @brief Scan a file
  *
