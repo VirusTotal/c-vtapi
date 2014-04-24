@@ -43,6 +43,23 @@ public and private API's.
 The public API is available to anyone who registers at www.virustotal.com.
 The private API features are only available to users with a private API licence.
 
+@section ReferenceCounting  Reference Counting
+Objects in this library use reference counters to track their use.
+Newly created objects have a count of one.  Use the ObjectName_get() function to get another reference.
+Use ObjectName_put() to release the reference.
+When the counter to the reference reaches zero the object is freed with free()
+
+@section CodingStyle Coding Style
+If you want to send patches to this libary please follow the google coding style
+@see http://google-styleguide.googlecode.com/svn/trunk/cppguide.xml
+
+
+@section ObjectOriented   Object Oriented Coding sytle.
+This library is using pure C in an object oriented way.
+
+All object inherit VtObject base object.
+If you are just a user of this library and not developing the library don't worry about this.
+
 
 */
 

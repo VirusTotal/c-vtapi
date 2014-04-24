@@ -49,21 +49,72 @@ struct VtResponse* VtResponse_new(void);
 void VtResponse_get(struct VtResponse *VtResponse);
 
 
-/** put a reference counter */
+/**
+ * @brief put a reference counter
+ *
+ * @param VtResponse ...
+ * @return void
+ */
 void VtResponse_put(struct VtResponse **VtResponse);
+
+/**
+ * @brief get the _verbose_msg field of the JSON response
+ *
+ * @param response VTResponse object
+ * @param buf  buffer to write the response into
+ * @param buf_siz size of the buffer
+ * @return char*
+ */
 
 char * VtResponse_getVerboseMsg(struct VtResponse *response, char *buf, int buf_siz);
 
+/**
+ * @brief Get the response code in the JSON response
+ *
+ * @param response VtResponse object
+ * @param response_code  response code
+ * @return int 0 if OK.  -1 if not found.
+ */
 int VtResponse_getResponseCode(struct VtResponse *response, int *response_code);
 
+/**
+ * @brief Get the raw JSON response.   The caller must free the returned string
+ *
+ * @param response VtResponse object
+ * @param flags  set to 0,  or VT_JSON_FLAG_INDENT  to indent the json  for a human to read
+ * @return char*   NULL if no response.  The caller must free the returned pointer to avoid a leak.
+ */
 char * VtResponse_toJSONstr(struct VtResponse *response, int flags);
 
-int VtResponse_fromJSON(struct VtResponse *response, json_t *json);
 
+
+/**
+ * @brief Fill the response object from the JSON string
+ *
+ * @param response VtResponse object
+ * @param json_str ...
+ * @return int
+ */
 int VtResponse_fromJSONstr(struct VtResponse *response, const char *json_str);
 
+
+/**
+ * @brief Get an integer key/value pair within the JSON response
+ *
+ * @param response VtResponse object
+ * @param key Key value to read
+ * @param value  integer value returned
+ * @return int
+ */
 int VtResponse_getIntValue(struct VtResponse *response, const char *key, int *value);
 
+/**
+ * @brief Get a string key/value pair in the JSON response
+ *
+ * @param response VtResponse object
+ * @param key key to read
+ * @return char*  string returned.  user must free this pointer to avoid a leak. Will return NULL if not found.
+ */
 char *VtResponse_getString(struct VtResponse *response, const char *key);
 
 

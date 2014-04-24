@@ -47,9 +47,13 @@ limitations under the License.
 #include "vtcapi_common.h"
 
 
+/**
+ * @struct VtFile
+ * @brief A file object
+ */
 struct VtFile {
   API_OBJECT_COMMON;
-  char *offset;
+  char *offset; // offset for use in search
 };
 
 
@@ -859,6 +863,10 @@ cleanup:
 }
 
 // Example data structure that can be passed to callback function
+/**
+ * @brief Download callback data
+ *
+ */
 struct DlCallbackData {
   int counter;
   FILE *fp;

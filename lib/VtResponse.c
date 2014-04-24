@@ -43,6 +43,11 @@ limitations under the License.
 
 #include "vtcapi_common.h"
 
+/**
+ * @brief Reponse object
+ *
+ */
+
 struct VtResponse {
   VT_OBJECT_COMMON;
   int response_code;
@@ -205,7 +210,7 @@ char * VtResponse_toJSONstr(struct VtResponse *response, int flags) {
   return s;
 }
 
-int VtResponse_fromJSON(struct VtResponse *response, json_t *json) {
+static int VtResponse_fromJSON(struct VtResponse *response, json_t *json) {
   json_t *json_data;
 
   json_data = json_object_get(json, "response_code");

@@ -45,6 +45,10 @@ limitations under the License.
 
 #include "vtcapi_common.h"
 
+/**
+ * @brief URL object
+ *
+ */
 struct VtUrl {
   API_OBJECT_COMMON;
 };
