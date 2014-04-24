@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#define _GNU_SOURCE
 
 #ifdef HAVE_CONFIG_H
 #include "c-vtapi_config.h"
