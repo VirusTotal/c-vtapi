@@ -1,6 +1,6 @@
 Runtime Dependencies
-	* curl     (curl-devel)
-	* janson   (janson-devel)
+	* curl or libcurl  (curl-devel package on some distributions)
+	* janson   (janson-devel package on some distributions)
 
 Compiling Dependencies
 	* automake, autoconf  (might be autotools package on your platform)
