@@ -209,14 +209,14 @@ int VtResponse_fromJSON(struct VtResponse *response, json_t *json)
 	if (json_data) {
 		response->response_code = (int) json_integer_value(json_data);
 	} else {
-		VT_ERROR("Protocol error missing 'response_code'\n");
+		DBG(1, "no 'response_code'\n");
 	}
 
 	json_data = json_object_get(json, "verbose_msg");
 	if (json_data) {
 		response->verbose_msg = strdup(json_string_value(json_data));
 	} else {
-		VT_ERROR("Protocol error missing 'verbose_msg'\n");
+		DBG(1,"Protocol error missing 'verbose_msg'\n");
 	}
 
 	return 0;
