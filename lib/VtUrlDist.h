@@ -7,6 +7,7 @@ extern "C" {
 
 // forward declarations
 struct VtUrlDist;
+struct VtResponse;
 
 /**
 * @ingroup VtApiPage

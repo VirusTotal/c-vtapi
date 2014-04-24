@@ -7,6 +7,7 @@ extern "C" {
 
 // forward declarations
 struct VtUrl;
+struct VtResponse;
 struct VtObject;
 
 /**
@@ -15,15 +16,39 @@ struct VtObject;
 * @{
 */
 
+/**
+ * @brief Create new URL object
+ *
+ * @param  void
+ * @return VtUrl*
+ */
 struct VtUrl* VtUrl_new(void);
 
-/** Get a reference counter */
+/**
+ * @brief Get a reference counter
+ *
+ * @param  VtUrl object
+ * @return void
+ */
+
 void VtUrl_get(struct VtUrl *);
 
 
-/** put a reference counter */
+/**
+ * @brief Put a reference counter
+ *
+ * @param  Pointer to VtUrl pointer
+ * @return void
+ */
 void VtUrl_put(struct VtUrl **);
 
+/**
+ * @brief Stet tha API key
+ *
+ * @param url_scan VtUrl Object
+ * @param api_key your api key
+ * @return void
+ */
 void VtUrl_setApiKey(struct VtUrl *url_scan, const char *api_key);
 
 /**
@@ -49,6 +74,12 @@ int VtUrl_scan(struct VtUrl *, const char *url);
 int VtUrl_report(struct VtUrl *, const char *url, bool scan, bool all_info);
 
 
+/**
+ * @brief Get response object
+ *
+ * @param url_scan VtUrl Object
+ * @return VtResponse*
+ */
 struct VtResponse * VtUrl_getResponse(struct VtUrl *url_scan);
 
 /**

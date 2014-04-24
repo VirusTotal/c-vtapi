@@ -5,29 +5,102 @@
 extern "C" {
 #endif
 
+struct VtResponse;
+struct VtFileDist;
+
 struct VtFileDist* VtFileDist_new(void);
 
-/** Get a reference counter */
+
+/**
+ * @brief Get a reference counter
+ *
+ * @param obj FileDist object
+ * @return void
+ */
 void VtFileDist_get(struct VtFileDist *obj);
 
-/** put a reference counter */
+
+/**
+ * @brief Put a reference counter
+ *
+ * @param obj ...
+ * @return void
+ */
 void VtFileDist_put(struct VtFileDist **obj);
 
-void VtFileDist_setApiKey(struct VtFileDist *vt_udist, const char *api_key);
+/**
+ * @brief Set the API key
+ *
+ * @param vt_dist  FileDist object
+ * @param api_key api key
+ * @return void
+ */
+void VtFileDist_setApiKey(struct VtFileDist *vt_dist, const char *api_key);
 
-void VtFileDist_setReports(struct VtFileDist *vt_udist, bool value);
+/**
+ * @brief Set the reports flag.  If set true, reports returned
+ *
+ * @param vt_dist FileDist object
+ * @param value true to enable.  false to disable
+ * @return void
+ */
+void VtFileDist_setReports(struct VtFileDist *vt_dist, bool value);
 
-void VtFileDist_setAfter(struct VtFileDist *vt_udist, unsigned long long  value);
 
-void VtFileDist_setBefore(struct VtFileDist *vt_udist, unsigned long long  value);
+/**
+ * @brief Set the after time.  To recieve reports after X time. used to page over results
+ *
+ * @param vt_dist VtFileDist object
+ * @param value unixtime
+ * @return void
+ */
+void VtFileDist_setAfter(struct VtFileDist *vt_dist, unsigned long long  value);
 
-void VtFileDist_setLimit(struct VtFileDist *vt_udist, int value);
+/**
+ * @brief Set the before time parameter.
+ *
+ * @param vt_dist VtFileDist object
+ * @param value  unixtime
+ * @return void
+ */
+void VtFileDist_setBefore(struct VtFileDist *vt_dist, unsigned long long  value);
 
-struct VtResponse * VtFileDist_getResponse(struct VtFileDist *vt_udist);
+/**
+ * @brief Set max limit of results to return
+ *
+ * @param vt_dist VtFileDist
+ * @param value  1 to 1000   results
+ * @return void
+ */
+void VtFileDist_setLimit(struct VtFileDist *vt_dist, int value);
 
-int VtFileDist_getDistribution(struct VtFileDist *vt_udist);
 
-int VtFileDist_process(struct VtFileDist* url_dist,
+/**
+ * @brief Get response object
+ *
+ * @param vt_dist VtFileDist object
+ * @return VtResponse*
+ */
+struct VtResponse * VtFileDist_getResponse(struct VtFileDist *vt_dist);
+
+/**
+ * @brief Get the distrubution feed.  Then parse the results with VtFileDist_getResponse
+ *
+ * @param vt_dist VtFileDist object
+ * @return int
+ */
+
+int VtFileDist_getDistribution(struct VtFileDist *vt_dist);
+
+/**
+ * @brief Process file distribution.  Internally calls VtFileDist_getDistribution
+ *
+ * @param vt_dist VtFileDist object
+ * @param cb callback function, called on every result
+ * @param user_data user data passed to callback function
+ * @return int 0 for OK, or error code
+ */
+int VtFileDist_process(struct VtFileDist* vt_dist,
 	void (*cb)(const char *url, unsigned long long timestamp, const char *sha256hash, const char *name, json_t *raw_json, void *data),
 	void *user_data);
 

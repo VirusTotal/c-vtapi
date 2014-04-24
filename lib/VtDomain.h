@@ -16,10 +16,21 @@ struct VtResponse;
 */
 struct VtDomain* VtDomain_new(void);
 
-/** Get a reference counter */
+
+/**
+ * @brief Get a reference pointer
+ *
+ * @param obj Domain object
+ * @return void
+ */
 void VtDomain_get(struct VtDomain *obj);
 
-/** put a reference counter */
+/**
+ * @brief Put a reference counter
+ *
+ * @param obj ...
+ * @return void
+ */
 void VtDomain_put(struct VtDomain **obj);
 
 
@@ -32,16 +43,22 @@ void VtDomain_put(struct VtDomain **obj);
  */
 void VtDomain_setApiKey(struct VtDomain *vt_domain, const char *api_key);
 
-struct VtResponse * VtDomain_getResponse(struct VtDomain *vt_ip_addr);
+/**
+ * @brief Get response object
+ *
+ * @param vt_domain ...
+ * @return VtResponse*
+ */
+struct VtResponse * VtDomain_getResponse(struct VtDomain *vt_domain);
 
 /**
  * @brief get the report on a domain
  * 
- * @param vt_ip_addr ...
+ * @param vt_domain ...
  * @param domain_name_str Domain Name to get report on
- * @return int
+ * @return int.  0 for OK, or 
  */
-int VtDomain_report(struct VtDomain *vt_ip_addr, const char *domain_name_str);
+int VtDomain_report(struct VtDomain *vt_domain, const char *domain_name_str);
 
 /**
 *  @}

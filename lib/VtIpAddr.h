@@ -17,17 +17,28 @@ struct VtResponse;
 
 
 /**
- * @brief Create new Ojbect
+ * @brief Create new Object
  * 
- * @return VtIpAddr object pointer
+ * @return VtIpAddr object pointer. or null on erro
  */
-
 struct VtIpAddr* VtIpAddr_new(void);
 
-/** Get a reference counter */
+
+/**
+ * @brief Get a reference counter
+ *
+ * @param obj VtIpAddr object
+ * @return void
+ */
 void VtIpAddr_get(struct VtIpAddr *obj);
 
-/** put a reference counter */
+
+/**
+ * @brief Put a reference counter
+ *
+ * @param obj ...
+ * @return void
+ */
 void VtIpAddr_put(struct VtIpAddr **obj);
 
 /**
@@ -37,10 +48,16 @@ void VtIpAddr_put(struct VtIpAddr **obj);
  * @param api_key Your API Kety
  * @return void
  */
-
 void VtIpAddr_setApiKey(struct VtIpAddr *vt_ip_addr, const char *api_key);
 
 
+
+/**
+ * @brief Get the respose object
+ *
+ * @param vt_ip_addr VtIpAddr object
+ * @return VtResponse*
+ */
 struct VtResponse * VtIpAddr_getResponse(struct VtIpAddr *vt_ip_addr);
 
 /**
@@ -48,7 +65,7 @@ struct VtResponse * VtIpAddr_getResponse(struct VtIpAddr *vt_ip_addr);
  * 
  * @param vt_ip_addr ...
  * @param ip_addr_str ...
- * @return int
+ * @return int.  0 for OK, or error code
  */
 int VtIpAddr_report(struct VtIpAddr *vt_ip_addr, const char *ip_addr_str);
 

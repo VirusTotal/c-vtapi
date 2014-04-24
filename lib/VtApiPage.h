@@ -55,6 +55,12 @@ struct VtApiPage_ops
 	
 };
 
+/**
+ * @brief Destructor.   This is only used internally not for use by users.
+ *
+ * @param obj object to be freed
+ * @return int.  O for OK
+ */
 int VtApiPage_destructor(struct VtObject *obj);
 
 struct VtApiPage* VtApiPage_alloc(struct VtApiPage_ops *ops);
@@ -62,14 +68,34 @@ struct VtApiPage* VtApiPage_alloc(struct VtApiPage_ops *ops);
 struct VtApiPage* VtApiPage_new(void); 
 
 
+/**
+ * @brief Relase a reference counter.  If reaches 0, object freed
+ *
+ * @param  Pointer to object pointer
+ * @return void
+ */
 void VtApiPage_put(struct VtApiPage **);
 
+
+/**
+ * @brief Get a reference counter
+ *
+ * @param  API object pointer
+ * @return void
+ */
 void VtApiPage_get(struct VtApiPage *);
 	
+/**
+ * @brief Set the API key
+ *
+ * @param api object
+ * @param key API KEY
+ * @return void
+ */
 void VtApiPage_setApiKey(struct VtApiPage *api, const char *key);
 
 /**
- * @brief Common callback for curl library
+ * @brief Common callback for curl library.  Different functions within this libary use this.
  * 
  * @param ptr pointer to data from curl 
  * @param size ...
@@ -77,11 +103,10 @@ void VtApiPage_setApiKey(struct VtApiPage *api, const char *key);
  * @param userdata must be struct VtApiPage
  * @return size_t
  */
-
 size_t __VtApiPage_WriteCb( char *ptr, size_t size, size_t nmemb, void *userdata);
 
 /**
- * @brief Reset recieve buffers
+ * @brief Reset receive buffers
  * 
  * @param api pointer to object
  * @return void
