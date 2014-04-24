@@ -2,6 +2,10 @@
 #ifndef VT_IP_ADDR_H 
 #define VT_IP_ADDR_H 1
 
+#ifdef  __cplusplus
+extern "C" {
+#endif
+
 struct VtIpAddr;
 struct VtResponse;
 
@@ -52,5 +56,9 @@ int VtIpAddr_report(struct VtIpAddr *vt_ip_addr, const char *ip_addr_str);
 /**
 *  @}
 */
+
+#ifdef  __cplusplus
+}
+#endif /*cplusplus*/
 
 #endif

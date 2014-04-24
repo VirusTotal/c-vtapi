@@ -1,6 +1,10 @@
 #ifndef VT_URL_H
 #define VT_URL_H 1
 
+#ifdef  __cplusplus
+extern "C" {
+#endif
+
 // forward declarations
 struct VtUrl;
 struct VtObject;
@@ -50,5 +54,9 @@ struct VtResponse * VtUrl_getResponse(struct VtUrl *url_scan);
 /**
 *  @}
 */
+
+#ifdef  __cplusplus
+}
+#endif /*cplusplus*/
 
 #endif

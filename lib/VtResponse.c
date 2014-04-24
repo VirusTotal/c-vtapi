@@ -134,6 +134,9 @@ void VtResponse_put(struct VtResponse **resp)
 
 char * VtResponse_getVerboseMsg(struct VtResponse *response, char *buf, int buf_siz)
 {
+	if (!response || !response->verbose_msg || !response->verbose_msg[0])
+		return NULL;
+
 	return strncpy(buf, response->verbose_msg, buf_siz);
 }
 
@@ -206,14 +209,14 @@ int VtResponse_fromJSON(struct VtResponse *response, json_t *json)
 	if (json_data) {
 		response->response_code = (int) json_integer_value(json_data);
 	} else {
-		VT_ERROR("Protocol error missing 'response_code'\n");
+		DBG(1, "no 'response_code'\n");
 	}
 
 	json_data = json_object_get(json, "verbose_msg");
 	if (json_data) {
 		response->verbose_msg = strdup(json_string_value(json_data));
 	} else {
-		VT_ERROR("Protocol error missing 'verbose_msg'\n");
+		DBG(1,"Protocol error missing 'verbose_msg'\n");
 	}
 
 	return 0;
@@ -226,7 +229,7 @@ int VtResponse_fromJSONstr(struct VtResponse *response, const char *json_str)
 		VT_ERROR("Parsing\n");
 		return -1;
 	}
-	return 0;
+	return VtResponse_fromJSON(response, response->json_data);
 }
 
 json_t * VtResponse_getJanssonObj(struct VtResponse *response)

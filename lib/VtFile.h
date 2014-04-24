@@ -3,6 +3,10 @@
 
 #include <stdbool.h>
 
+#ifdef  __cplusplus
+extern "C" {
+#endif
+
 // forward declarations
 struct VtFile;
 struct VtObject;
@@ -84,9 +88,11 @@ int VtFile_search(struct VtFile *file_scan, const char *query,
 	void (*cb)(const char *resource, void *data),
 	void *user_data);
 
+#ifdef JANSSON_H
 int VtFile_clusters(struct VtFile *file_scan, const char *cluster_date,
 	void (*cb)(json_t *cluster_json, void *data),
 	void *user_data);
+#endif
 
 
 int VtFile_download(struct VtFile *file_scan, const char *hash,
@@ -95,4 +101,10 @@ int VtFile_download(struct VtFile *file_scan, const char *hash,
 int VtFile_downloadToFile(struct VtFile *file_scan, const char *hash, const char *out_file);
 
 /** @} */
+
+
+#ifdef  __cplusplus
+}
+#endif /*cplusplus*/
+
 #endif

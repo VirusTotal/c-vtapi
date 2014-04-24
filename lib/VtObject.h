@@ -7,8 +7,6 @@
 
 
 #ifdef  __cplusplus
-
-//class VpPageHandler_ops;
 extern "C" {
 #endif
 
@@ -51,7 +49,7 @@ extern "C" {
 	int id; \
 	int refcount; \
 	pthread_mutex_t mutex;  \
-	struct VtObject_ops *obj_ops;
+	struct VtObject_ops *obj_ops
 
 #define VT_OBJECT_LOCK(obj)  do { \
 	DBG(3, "LOCKING obj %p\n", obj); \
@@ -60,7 +58,7 @@ extern "C" {
 
 #define VT_OBJECT_UNLOCK(obj) do { \
 	pthread_mutex_unlock(&((struct VtObject*)obj)->mutex); \
-	DBG(3, "UNLOCKED %p\n", obj);
+	DBG(3, "UNLOCKED %p\n", obj);\
 	} while (0)
 
 #endif

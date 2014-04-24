@@ -31,7 +31,7 @@
 
 struct VtFileDist
 {
-	API_OBJECT_COMMON
+	API_OBJECT_COMMON;
 	unsigned long long before;
 	unsigned long long after;
 	bool reports;
@@ -159,25 +159,25 @@ int VtFileDist_getDistribution(struct VtFileDist *vt_udist)
 	VtApiPage_resetBuffer((struct VtApiPage *) vt_udist);
 	curl = curl_easy_init();
 	if (!curl) {
-		ERROR("init curl\n");
+		VT_ERROR("init curl\n");
 		goto cleanup;
 	}
 
 	DBG(1, "Api Key =  '%s'\n", vt_udist->api_key);
 
 	if (ret)
-		ERROR("Adding key\n");
+		VT_ERROR("Adding key\n");
 
 	len = sprintf(get_url, VT_API_BASE_URL "file/distribution?apikey=%s", vt_udist->api_key);
 	if (len < 0) {
-		ERROR("sprintf\n");
+		VT_ERROR("sprintf\n");
 		goto cleanup;
 	}
 
 	if (vt_udist->before) {
 		len += ret = sprintf(get_url + len, "&before=%lld", vt_udist->before);
 		if (ret < 0) {
-			ERROR("sprintf before\n");
+			VT_ERROR("sprintf before\n");
 			goto cleanup;
 		}
 	}
@@ -185,7 +185,7 @@ int VtFileDist_getDistribution(struct VtFileDist *vt_udist)
 	if (vt_udist->after) {
 		len += ret = sprintf(get_url + len, "&after=%lld", vt_udist->after);
 		if (ret < 0) {
-			ERROR("sprintf after\n");
+			VT_ERROR("sprintf after\n");
 			goto cleanup;
 		}
 	}
@@ -193,7 +193,7 @@ int VtFileDist_getDistribution(struct VtFileDist *vt_udist)
 	if (vt_udist->reports) {
 		len += ret = sprintf(get_url + len, "&reports=true");
 		if (ret < 0) {
-			ERROR("sprintf after\n");
+			VT_ERROR("sprintf after\n");
 			goto cleanup;
 		}
 	}
@@ -201,7 +201,7 @@ int VtFileDist_getDistribution(struct VtFileDist *vt_udist)
 	if (vt_udist->limit) {
 		len += ret = sprintf(get_url + len, "&limit=%d", vt_udist->limit);
 		if (ret < 0) {
-			ERROR("sprintf after\n");
+			VT_ERROR("sprintf after\n");
 			goto cleanup;
 		}
 	}
@@ -228,12 +228,12 @@ int VtFileDist_getDistribution(struct VtFileDist *vt_udist)
 	DBG(1, "Perform done\n");
 	/* Check for errors */
 	if(res != CURLE_OK) {
-		ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+		VT_ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
 		goto cleanup;
 	} else {
 		curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_response_code);
 		if (http_response_code != 200) {
-			ERROR("HTTP Response code: %ld\n", http_response_code);
+			VT_ERROR("HTTP Response code: %ld\n", http_response_code);
 			ret = http_response_code;
 			goto cleanup;
 		}
@@ -248,7 +248,7 @@ int VtFileDist_getDistribution(struct VtFileDist *vt_udist)
 
 	ret = VtResponse_fromJSONstr(vt_udist->response, vt_udist->buffer);
 	if (ret) {
-		ERROR("Parsing JSON\n");
+		VT_ERROR("Parsing JSON\n");
 		goto cleanup;
 	}
 
@@ -268,27 +268,27 @@ int VtFileDist_parse(struct VtFileDist* url_dist,
 	int index;
 
 	if (!url_dist || !url_dist->response) {
-		ERROR("No data recieved\n");
+		VT_ERROR("No data recieved\n");
 		return -1;
 	}
 
 	resp_json =  VtResponse_getJanssonObj(url_dist->response);
 	
 	if (!json_is_array(resp_json)) {
-		ERROR("JSON is not array\n");
+		VT_ERROR("JSON is not array\n");
 		return -1;
 	}
 
 	json_array_foreach(resp_json, index, file_jobj) {
 
 		if (!json_is_object(file_jobj)) {
-			ERROR("Parse error not a URL object\n");
+			VT_ERROR("Parse error not a URL object\n");
 			return -1;
 		}
 
 		url_str_json = json_object_get(file_jobj, "link");
 		if (!url_str_json || !json_is_string(url_str_json)) {
-			ERROR("Parse error: link string\n");
+			VT_ERROR("Parse error: link string\n");
 			return -1;
 		}
 		name_json = json_object_get(file_jobj, "name");
@@ -297,13 +297,13 @@ int VtFileDist_parse(struct VtFileDist* url_dist,
 		}
 		sha256_json = json_object_get(file_jobj, "sha256");
 		if (!sha256_json || !json_is_string(sha256_json)) {
-			ERROR("Parse error: sha256 string\n");
+			VT_ERROR("Parse error: sha256 string\n");
 			return -1;
 		}
 
 		timestamp_json = json_object_get(file_jobj, "timestamp");
 		if (!timestamp_json || !json_is_integer(timestamp_json)) {
-			ERROR("JSON parse error timestamp\n");
+			VT_ERROR("JSON parse error timestamp\n");
 			return -1;
 		}
 

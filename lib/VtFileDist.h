@@ -1,6 +1,10 @@
 #ifndef VT_FILE_DIST
 #define VT_FILE_DIST 1
 
+#ifdef  __cplusplus
+extern "C" {
+#endif
+
 struct VtFileDist* VtFileDist_new(void);
 
 /** Get a reference counter */
@@ -26,5 +30,10 @@ int VtFileDist_getDistribution(struct VtFileDist *vt_udist);
 int VtFileDist_process(struct VtFileDist* url_dist,
 	void (*cb)(const char *url, unsigned long long timestamp, const char *sha256hash, const char *name, json_t *raw_json, void *data),
 	void *user_data);
+
+
+#ifdef  __cplusplus
+}
+#endif /*cplusplus*/
 
 #endif

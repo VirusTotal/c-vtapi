@@ -2,6 +2,9 @@
 #define VT_RESPONSE_H 1
 
 
+#ifdef  __cplusplus
+extern "C" {
+#endif
 
 /**
 * @ingroup VtObject
@@ -43,6 +46,8 @@ int VtResponse_fromJSON(struct VtResponse *response, json_t *json);
 
 int VtResponse_fromJSONstr(struct VtResponse *response, const char *json_str);
 
+int VtResponse_getIntValue(struct VtResponse *response, const char *key, int *value);
+
 char *VtResponse_getString(struct VtResponse *response, const char *key);
 
 
@@ -55,5 +60,10 @@ char *VtResponse_getString(struct VtResponse *response, const char *key);
 json_t * VtResponse_getJanssonObj(struct VtResponse *response);
 
 /** @} */
+
+
+#ifdef  __cplusplus
+}
+#endif /*cplusplus*/
 
 #endif
