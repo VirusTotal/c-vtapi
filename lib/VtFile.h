@@ -82,6 +82,17 @@ void VtFile_setOffset(struct VtFile *file_obj, const char *offset);
 
 
 /**
+ * @brief Set a callback function for progress changes.
+ *
+ * @param file VtFile object
+ * @param progress_changed_cb callback function
+ * @param data user data to be passed to callback
+ * @return void
+ */
+void VtFile_setProgressCallback(struct VtFile *file,
+   int (*progress_changed_cb)(struct VtFile *, void *), void *data);
+
+/**
  * @brief Get progress of upload/download
  *
  * @param file VTFil pointer

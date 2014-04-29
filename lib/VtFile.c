@@ -59,6 +59,8 @@ struct VtFile {
   int64_t dlnow;
   int64_t ultotal;
   int64_t ulnow;
+  void *progress_cb_data;
+  int (*progress_changed_cb)(struct VtFile *,  void *);
 };
 
 
@@ -156,6 +158,13 @@ struct VtResponse * VtFile_getResponse(struct VtFile *file_scan) {
   return file_scan->response;
 }
 
+void VtFile_setProgressCallback(struct VtFile *file,
+    int (*progress_changed_cb)(struct VtFile *, void *), void *data)
+{
+  file->progress_cb_data = data;
+  file->progress_changed_cb = progress_changed_cb;
+}
+
 /* curl progress data for CURLOPT_XFERINFOFUNCTION callback  */
 static int xferinfo(void *p,
                     curl_off_t dltotal, curl_off_t dlnow,
@@ -177,6 +186,9 @@ static int xferinfo(void *p,
 
   if(file->cancel_operation)
     return 1;
+
+  if (file->progress_changed_cb)
+    file->progress_changed_cb(file, file->progress_cb_data);
   return 0;
 }
 
@@ -205,6 +217,46 @@ void VtFile_getProgress(struct VtFile *file, int64_t *dltotal, int64_t *dlnow, i
 
 void VtFile_cancelOperation(struct VtFile* file) {
   file->cancel_operation = true;
+}
+
+static void set_std_curl_data(struct VtFile *file, CURL *curl)
+{
+
+  curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, older_progress);
+  /* pass the struct pointer into the progress function */
+  curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, file);
+
+  #if LIBCURL_VERSION_NUM >= 0x072000
+  /* xferinfo was introduced in 7.32.0, no earlier libcurl versions will
+   * compile as they won't have the symbols around.
+   *
+   * If built with a newer libcurl, but running with an older libcurl:
+   * curl_easy_setopt() will fail in run-time trying to set the new
+   * callback, making the older callback get used.
+   *
+   * New libcurls will prefer the new callback and instead use that one even
+   * if both callbacks are set. */
+
+  curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, xferinfo);
+  /* pass the struct pointer into the xferinfo function, note that this is
+   * an alias to CURLOPT_PROGRESSDATA */
+  curl_easy_setopt(curl, CURLOPT_XFERINFODATA, file);
+  #endif
+
+  curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
+
+  #ifdef DISABLE_HTTPS_VALIDATION
+  curl_easy_setopt(curl,CURLOPT_SSL_VERIFYPEER,0L); // disable validation
+  curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+  #endif
+
+  /* enable verbose for easier tracing */
+  if (debug_level)
+    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+
+  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, __VtApiPage_WriteCb); // callback for data
+  curl_easy_setopt(curl, CURLOPT_WRITEDATA, file); // user arg
+
 }
 
 int VtFile_scan(struct VtFile *file_scan, const char *file_path) {
@@ -259,44 +311,10 @@ int VtFile_scan(struct VtFile *file_scan, const char *file_path) {
 
   curl_easy_setopt(curl, CURLOPT_URL, VT_API_BASE_URL "file/scan");
 
-
-  curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, older_progress);
-  /* pass the struct pointer into the progress function */
-  curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, file_scan);
-
-  #if LIBCURL_VERSION_NUM >= 0x072000
-  /* xferinfo was introduced in 7.32.0, no earlier libcurl versions will
-   * compile as they won't have the symbols around.
-   *
-   * If built with a newer libcurl, but running with an older libcurl:
-   * curl_easy_setopt() will fail in run-time trying to set the new
-   * callback, making the older callback get used.
-   *
-   * New libcurls will prefer the new callback and instead use that one even
-   * if both callbacks are set. */
-
-  curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, xferinfo);
-  /* pass the struct pointer into the xferinfo function, note that this is
-   * an alias to CURLOPT_PROGRESSDATA */
-  curl_easy_setopt(curl, CURLOPT_XFERINFODATA, file_scan);
-  #endif
-
-  curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
-#ifdef DISABLE_HTTPS_VALIDATION
-  curl_easy_setopt(curl,CURLOPT_SSL_VERIFYPEER,0L); // disable validation
-  curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-#endif
-
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
   curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost); // set form
 
-  /* enable verbose for easier tracing */
-  if (debug_level)
-    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-
-  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, __VtApiPage_WriteCb); // callback for data
-  curl_easy_setopt(curl, CURLOPT_WRITEDATA, file_scan); // user arg
-
+  set_std_curl_data(file_scan, curl);
 
   /* Perform the request, res will get the return code */
   res = curl_easy_perform(curl);
@@ -444,20 +462,10 @@ int VtFile_rescanHash(struct VtFile *file_scan,
 
   curl_easy_setopt(curl, CURLOPT_URL, VT_API_BASE_URL "file/rescan");
 
-#ifdef DISABLE_HTTPS_VALIDATION
-  curl_easy_setopt(curl,CURLOPT_SSL_VERIFYPEER,0L); // disable validation
-  curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-#endif
-
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
   curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost); // set form
 
-  /* enable verbose for easier tracing */
-  if (debug_level)
-    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-
-  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, __VtApiPage_WriteCb); // callback for data
-  curl_easy_setopt(curl, CURLOPT_WRITEDATA, file_scan); // user arg
+  set_std_curl_data(file_scan, curl);
 
 
   /* Perform the request, res will get the return code */
@@ -535,21 +543,10 @@ int VtFile_rescanDelete(struct VtFile *file_scan,
 
   curl_easy_setopt(curl, CURLOPT_URL, VT_API_BASE_URL "file/rescan/delete");
 
-#ifdef DISABLE_HTTPS_VALIDATION
-  curl_easy_setopt(curl,CURLOPT_SSL_VERIFYPEER,0L); // disable validation
-  curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-#endif
+  set_std_curl_data(file_scan, curl);
 
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
   curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost); // set form
-
-  /* enable verbose for easier tracing */
-  if (debug_level)
-    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-
-  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, __VtApiPage_WriteCb); // callback for data
-  curl_easy_setopt(curl, CURLOPT_WRITEDATA, file_scan); // user arg
-
 
   /* Perform the request, res will get the return code */
   res = curl_easy_perform(curl);
@@ -630,18 +627,7 @@ int VtFile_report(struct VtFile *file_scan, const char *hash) {
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
   curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost); // set form
 
-#ifdef DISABLE_HTTPS_VALIDATION
-  curl_easy_setopt(curl,CURLOPT_SSL_VERIFYPEER,0L); // disable validation
-  curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-#endif
-
-  /* enable verbose for easier tracing */
-  if (debug_level)
-    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-
-  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, __VtApiPage_WriteCb); // callback for data
-  curl_easy_setopt(curl, CURLOPT_WRITEDATA, file_scan); // user arg
-
+  set_std_curl_data(file_scan, curl);
 
   /* Perform the request, res will get the return code */
   res = curl_easy_perform(curl);
@@ -745,17 +731,7 @@ int VtFile_search(struct VtFile *file_scan, const char *query,
 // 	DBG(1, "URL=%s \n", url);
   curl_easy_setopt(curl, CURLOPT_URL, VT_API_BASE_URL "file/search");
 
-#ifdef DISABLE_HTTPS_VALIDATION
-  curl_easy_setopt(curl,CURLOPT_SSL_VERIFYPEER,0L); // disable validation
-  curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-#endif
-
-  /* enable verbose for easier tracing */
-  if (debug_level)
-    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-
-  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, __VtApiPage_WriteCb); // callback for data
-  curl_easy_setopt(curl, CURLOPT_WRITEDATA, file_scan); // user arg
+  set_std_curl_data(file_scan, curl);
 
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
   curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost); // set form
@@ -865,18 +841,7 @@ int VtFile_clusters(struct VtFile *file_scan, const char *cluster_date,
 // 	DBG(1, "URL=%s \n", url);
   curl_easy_setopt(curl, CURLOPT_URL, url);
 
-#ifdef DISABLE_HTTPS_VALIDATION
-  curl_easy_setopt(curl,CURLOPT_SSL_VERIFYPEER,0L); // disable validation
-  curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-#endif
-
-  /* enable verbose for easier tracing */
-  if (debug_level)
-    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-
-  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, __VtApiPage_WriteCb); // callback for data
-  curl_easy_setopt(curl, CURLOPT_WRITEDATA, file_scan); // user arg
-
+  set_std_curl_data(file_scan, curl);
 
   /* Perform the request, res will get the return code */
   res = curl_easy_perform(curl);
@@ -978,14 +943,8 @@ int VtFile_download(struct VtFile *file_scan, const char *hash,
   DBG(1, "URL=%s \n", url);
   curl_easy_setopt(curl, CURLOPT_URL, url);
 
-#ifdef DISABLE_HTTPS_VALIDATION
-  curl_easy_setopt(curl,CURLOPT_SSL_VERIFYPEER,0L); // disable validation
-  curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-#endif
+  set_std_curl_data(file_scan, curl);
 
-  /* enable verbose for easier tracing */
-  if (debug_level)
-    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 
   curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L); // download API will redirect to link
 
@@ -1068,17 +1027,7 @@ int VtFile_uploadUrl(struct VtFile *file_scan, char **url) {
 
   curl_easy_setopt(curl, CURLOPT_URL, get_url);
 
-#ifdef DISABLE_HTTPS_VALIDATION
-  curl_easy_setopt(curl,CURLOPT_SSL_VERIFYPEER,0L); // disable validation
-  curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-#endif
-
-  /* enable verbose for easier tracing */
-  if (debug_level)
-    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-
-  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, __VtApiPage_WriteCb); // callback for data
-  curl_easy_setopt(curl, CURLOPT_WRITEDATA, file_scan); // user arg
+  set_std_curl_data(file_scan, curl);
 
 
   /* Perform the request, res will get the return code */
