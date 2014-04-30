@@ -216,6 +216,9 @@ void VtFile_getProgress(struct VtFile *file, int64_t *dltotal, int64_t *dlnow, i
 }
 
 void VtFile_cancelOperation(struct VtFile* file) {
+
+  if (!file)
+    return;
   file->cancel_operation = true;
 }
 
