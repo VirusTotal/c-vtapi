@@ -19,7 +19,7 @@ limitations under the License.
 
 #include <unistd.h>
 #include <getopt.h>
-
+#include <signal.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -34,6 +34,8 @@ limitations under the License.
 
 
 #define DBG(FMT,ARG...) fprintf(stderr, "%s:%d: " FMT, __FUNCTION__, __LINE__, ##ARG);
+
+static bool keep_running = true;
 
 void print_usage(const char *prog_name) {
   printf("%s < --apikey YOUR_API_KEY >   [ --filescan FILE1 ] [ --filescan FILE2 ]\n", prog_name);
@@ -65,6 +67,13 @@ struct CallbackData {
 };
 
 
+
+void sighand_callback(int sig)
+{
+  printf("signal caught %d\n", sig);
+  keep_running = false;
+}
+
 void cluster_callback(json_t* cluster_json, void *data) {
   struct CallbackData *cb_data = (struct CallbackData *) data;
   char *s;
@@ -76,8 +85,21 @@ void cluster_callback(json_t* cluster_json, void *data) {
   printf("%s \n", s);
   free(s);
   printf("\n");
-
 }
+
+void progress_callback(struct VtFile *file, void *data)
+{
+  int64_t dltotal = 0;
+  int64_t dlnow = 0;
+  int64_t ul_total = 0;
+  int64_t ul_now = 0;
+  VtFile_getProgress(file, &dltotal, &dlnow, &ul_total, &ul_now);
+
+  printf("progress_callback %lld/%lld\n", (long long) ul_now, (long long) ul_total);
+  if (!keep_running)
+    VtFile_cancelOperation(file);
+}
+
 #define RESP_BUF_SIZE 255
 
 int main(int argc, char * const *argv) {
@@ -96,8 +118,11 @@ int main(int argc, char * const *argv) {
     print_usage(argv[0]);
     return 0;
   }
+  signal(SIGHUP, sighand_callback);
+  signal(SIGTERM, sighand_callback);
 
   file_scan = VtFile_new();
+  VtFile_setProgressCallback(file_scan, progress_callback, NULL);
 
   while (1) {
     int option_index = 0;

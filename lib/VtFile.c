@@ -60,7 +60,7 @@ struct VtFile {
   int64_t ultotal;
   int64_t ulnow;
   void *progress_cb_data;
-  int (*progress_changed_cb)(struct VtFile *,  void *);
+  void (*progress_changed_cb)(struct VtFile *,  void *);
 };
 
 
@@ -159,7 +159,7 @@ struct VtResponse * VtFile_getResponse(struct VtFile *file_scan) {
 }
 
 void VtFile_setProgressCallback(struct VtFile *file,
-    int (*progress_changed_cb)(struct VtFile *, void *), void *data)
+    void (*progress_changed_cb)(struct VtFile *, void *), void *data)
 {
   file->progress_cb_data = data;
   file->progress_changed_cb = progress_changed_cb;
@@ -184,11 +184,12 @@ static int xferinfo(void *p,
   file->ulnow = ulnow;
   VT_OBJECT_UNLOCK(file);
 
+  if (file->progress_changed_cb)
+    file->progress_changed_cb(file, file->progress_cb_data);
+
   if(file->cancel_operation)
     return 1;
 
-  if (file->progress_changed_cb)
-    file->progress_changed_cb(file, file->progress_cb_data);
   return 0;
 }
 
@@ -271,6 +272,7 @@ int VtFile_scan(struct VtFile *file_scan, const char *file_path) {
   struct curl_httppost *lastptr=NULL;
   struct curl_slist *headerlist=NULL;
   static const char header_buf[] = "Expect:";
+  long http_response_code = 0;
 
 
   VtApiPage_resetBuffer((struct VtApiPage *) file_scan);
@@ -325,8 +327,17 @@ int VtFile_scan(struct VtFile *file_scan, const char *file_path) {
   /* Check for errors */
   if(res != CURLE_OK) {
     VT_ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+    ret = res;
     goto cleanup;
+  } else {
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_response_code);
+    if (http_response_code != 200) {
+      VT_ERROR("HTTP Response code: %ld\n", http_response_code);
+      ret = http_response_code;
+      goto cleanup;
+    }
   }
+
 
   DBG(1, "Page:\n%s\n",file_scan->buffer);
 
@@ -368,6 +379,7 @@ int VtFile_rescanHash(struct VtFile *file_scan,
   char buff[32];
   struct tm time_result;
   static const char header_buf[] = "Expect:";
+  long http_response_code = 0;
 
   VtApiPage_resetBuffer((struct VtApiPage *) file_scan);
 
@@ -477,8 +489,17 @@ int VtFile_rescanHash(struct VtFile *file_scan,
   /* Check for errors */
   if(res != CURLE_OK) {
     VT_ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+    ret = res;
     goto cleanup;
+  } else {
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_response_code);
+    if (http_response_code != 200) {
+      VT_ERROR("HTTP Response code: %ld\n", http_response_code);
+      ret = http_response_code;
+      goto cleanup;
+    }
   }
+
 
   DBG(1, "Page:\n%s\n",file_scan->buffer);
   if (file_scan->response)
@@ -513,6 +534,7 @@ int VtFile_rescanDelete(struct VtFile *file_scan,
   struct curl_httppost *lastptr=NULL;
   struct curl_slist *headerlist=NULL;
   static const char header_buf[] = "Expect:";
+  long http_response_code = 0;
 
   VtApiPage_resetBuffer((struct VtApiPage *) file_scan);
 
@@ -557,8 +579,17 @@ int VtFile_rescanDelete(struct VtFile *file_scan,
   /* Check for errors */
   if(res != CURLE_OK) {
     VT_ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+    ret = res;
     goto cleanup;
+  } else {
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_response_code);
+    if (http_response_code != 200) {
+      VT_ERROR("HTTP Response code: %ld\n", http_response_code);
+      ret = http_response_code;
+      goto cleanup;
+    }
   }
+
 
   DBG(1, "Page:\n%s\n",file_scan->buffer);
   if (file_scan->response)
@@ -638,6 +669,7 @@ int VtFile_report(struct VtFile *file_scan, const char *hash) {
   /* Check for errors */
   if(res != CURLE_OK) {
     VT_ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+    ret = res;
     goto cleanup;
   } else {
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_response_code);
@@ -745,6 +777,7 @@ int VtFile_search(struct VtFile *file_scan, const char *query,
   /* Check for errors */
   if(res != CURLE_OK) {
     VT_ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+    ret = res;
     goto cleanup;
   } else {
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_response_code);
@@ -852,6 +885,7 @@ int VtFile_clusters(struct VtFile *file_scan, const char *cluster_date,
   /* Check for errors */
   if(res != CURLE_OK) {
     VT_ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+    ret = res;
     goto cleanup;
   } else {
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_response_code);
@@ -961,6 +995,7 @@ int VtFile_download(struct VtFile *file_scan, const char *hash,
   /* Check for errors */
   if(res != CURLE_OK) {
     VT_ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+    ret = res;
     goto cleanup;
   } else {
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_response_code);

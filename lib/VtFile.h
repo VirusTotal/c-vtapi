@@ -90,7 +90,7 @@ void VtFile_setOffset(struct VtFile *file_obj, const char *offset);
  * @return void
  */
 void VtFile_setProgressCallback(struct VtFile *file,
-   int (*progress_changed_cb)(struct VtFile *, void *), void *data);
+   void (*progress_changed_cb)(struct VtFile *, void *), void *data);
 
 /**
  * @brief Get progress of upload/download
@@ -111,7 +111,7 @@ void VtFile_getProgress(struct VtFile *file, int64_t *dltotal, int64_t *dlnow, i
  * @return int
  */
 
-void VtFile_cancelOperation(VtFile* file);
+void VtFile_cancelOperation(struct VtFile* file);
 
 
 /**
