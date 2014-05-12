@@ -1,7 +1,8 @@
 *~
 *.la
 *.lo
-*.in
+Makefile.in
+c-vtapi_config.h.in
 *.kde*
 *.log
 *.o
