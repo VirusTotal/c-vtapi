@@ -204,7 +204,7 @@ int VtFile_clusters(struct VtFile *file_obj, const char *cluster_date,
  * @brief Requires private-api permissions
  *
  * @param file_obj  File object
- * @param hash hash
+ * @param hash hash to download
  * @param cb write callback. Theis function will be called muliiple
  * @param user_data user callback data
  * @return int.  0 for OK or error code
