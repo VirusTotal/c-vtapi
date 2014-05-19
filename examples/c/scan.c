@@ -32,8 +32,12 @@ limitations under the License.
 #include "VtFile.h"
 #include "VtResponse.h"
 
+// #ifdef _MSC_VER
+// #define PRINT(FMT,  ...)  printf("%s:%d: " FMT, __FUNCTION__, __LINE__, __VA_ARGS__);
+// #else
+// #define PRINT(FMT,ARG...) printf("%s:%d: " FMT, __FUNCTION__, __LINE__, ##ARG);
+// #endif
 
-#define DBG(FMT,ARG...) fprintf(stderr, "%s:%d: " FMT, __FUNCTION__, __LINE__, ##ARG);
 
 static bool keep_running = true;
 
@@ -102,6 +106,27 @@ void progress_callback(struct VtFile *file, void *data)
 
 #define RESP_BUF_SIZE 255
 
+int scan_file(struct VtFile *scan, const char *path)
+{
+  int ret;
+  struct stat stat_buf;
+
+  ret = stat(path, &stat_buf);
+
+  if (ret)
+    return ret;
+
+  if (stat_buf.st_size < (64*1024*1024) ) {
+    ret = VtFile_scan(scan, path);
+  } else {
+    ret = VtFile_scanBigFile(scan, path);
+    printf(" VtFile_scanBigFile ret =%d \n", ret);
+  }
+
+
+  return ret;
+}
+
 int main(int argc, char * const *argv) {
   int c;
   int ret = 0;
@@ -158,7 +183,7 @@ int main(int argc, char * const *argv) {
       }
       ret = VtFile_clusters(file_scan, optarg,
                             cluster_callback, &cb_data);
-      DBG("Filescan clusters ret=%d\n", ret);
+      //PRINT("Filescan clusters ret=%d\n", ret);
       if (ret) {
         printf("Error: %d \n", ret);
       }
@@ -173,7 +198,7 @@ int main(int argc, char * const *argv) {
         exit(1);
       }
       ret = VtFile_downloadToFile(file_scan, optarg, out);
-      DBG("Filescan download ret=%d\n", ret);
+      //PRINT("Filescan download ret=%d\n", ret);
       if (ret) {
         printf("Error: %d \n", ret);
       }
@@ -184,8 +209,8 @@ int main(int argc, char * const *argv) {
         exit(1);
       }
 
-      ret = VtFile_scan(file_scan, optarg);
-      DBG("Filescan ret=%d\n", ret);
+      ret = scan_file(file_scan, optarg);
+      // PRINT("Filescan ret=%d\n", ret);
       if (ret) {
         printf("Error: %d \n", ret);
       } else {
@@ -205,7 +230,7 @@ int main(int argc, char * const *argv) {
       }
 
       ret = VtFile_rescanHash(file_scan, optarg, 0, 0, 0, NULL, false);
-      DBG("rescan ret=%d\n", ret);
+      // PRINT("rescan ret=%d\n", ret);
       if (ret) {
         printf("Error: %d \n", ret);
       } else {
@@ -224,7 +249,7 @@ int main(int argc, char * const *argv) {
         exit(1);
       }
       ret = VtFile_report(file_scan, optarg);
-      DBG("rescan ret=%d\n", ret);
+     // PRINT("rescan ret=%d\n", ret);
       if (ret) {
         printf("Error: %d \n", ret);
       } else {
@@ -275,7 +300,7 @@ int main(int argc, char * const *argv) {
     printf("\n");
   }
 cleanup:
-  DBG("Cleanup\n");
+  //PRINT("Cleanup\n");
   VtFile_put(&file_scan);
 
   if (api_key)

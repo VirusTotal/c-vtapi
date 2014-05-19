@@ -222,6 +222,13 @@ int VtFile_download(struct VtFile *file_obj, const char *hash,
  */
 int VtFile_downloadToFile(struct VtFile *file_obj, const char *hash, const char *out_file);
 
+
+
+int VtFile_uploadUrl(struct VtFile *file, char **url);
+
+int VtFile_scanBigFile(struct VtFile *file_scan, const char * path);
+
+
 /** @} */
 
 

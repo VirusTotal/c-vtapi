@@ -1107,3 +1107,93 @@ cleanup:
 }
 
 
+int VtFile_scanBigFile(struct VtFile *file_scan, const char * path) {
+  char *url = NULL;
+  int ret;
+  CURL *curl;
+  CURLcode res;
+  struct curl_httppost *formpost=NULL;
+  struct curl_httppost *lastptr=NULL;
+  struct curl_slist *headerlist=NULL;
+  static const char header_buf[] = "Expect:";
+  long http_response_code = 0;
+
+
+  ret = VtFile_uploadUrl(file_scan, &url);
+  if (ret || !url)
+    goto cleanup;
+
+  VtApiPage_resetBuffer((struct VtApiPage *) file_scan);
+  curl = curl_easy_init();
+  if (!curl) {
+    VT_ERROR("init curl\n");
+    goto cleanup;
+  }
+
+    headerlist = curl_slist_append(headerlist, header_buf);
+
+  DBG(1, "File to send '%s'\n", path);
+  DBG(1, "Api Key =  '%s'\n", file_scan->api_key);
+
+  ret = curl_formadd(&formpost,
+                     &lastptr,
+                     CURLFORM_COPYNAME, "file",
+                     CURLFORM_FILE,  path,
+                     CURLFORM_END);
+  if (ret)
+    VT_ERROR("Adding file %s\n", path);
+
+  /* Fill in the filename field */
+  ret = curl_formadd(&formpost,
+                     &lastptr,
+                     CURLFORM_COPYNAME, "filename",
+                     CURLFORM_COPYCONTENTS, path, // FIXME
+                     CURLFORM_END);
+
+  curl_easy_setopt(curl, CURLOPT_URL, url);
+  curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
+  curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost); // set form
+  set_std_curl_data(file_scan, curl);
+
+
+  /* Perform the request, res will get the return code */
+  res = curl_easy_perform(curl);
+  DBG(1, "Perform done\n");
+  /* Check for errors */
+  if(res != CURLE_OK) {
+    VT_ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+    ret = res;
+    goto cleanup;
+  } else {
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_response_code);
+    if (http_response_code != 200) {
+      VT_ERROR("HTTP Response code: %ld\n", http_response_code);
+      ret = http_response_code;
+      goto cleanup;
+    }
+  }
+
+
+  DBG(1, "Page:\n%s\n",file_scan->buffer);
+
+  if (file_scan->response)
+    VtResponse_put(&file_scan->response);
+
+  file_scan->response = VtResponse_new();
+  ret = VtResponse_fromJSONstr(file_scan->response, file_scan->buffer);
+  if (ret) {
+    VT_ERROR("Parsing JSON\n");
+    goto cleanup;
+  }
+
+
+  DBG(1, "Page:\n%s\n",file_scan->buffer);
+
+  cleanup:
+  DBG(1, "cleaning up \n");
+  if (url)
+    free(url);
+
+  return ret;
+}
+
