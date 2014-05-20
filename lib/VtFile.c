@@ -43,6 +43,7 @@ limitations under the License.
 #include "VtObject.h"
 #include "VtApiPage.h"
 #include "VtResponse.h"
+#include "VtFile.h"
 
 #include "vtcapi_common.h"
 
@@ -60,7 +61,7 @@ struct VtFile {
   int64_t ultotal;
   int64_t ulnow;
   void *progress_cb_data;
-  void (*progress_changed_cb)(struct VtFile *,  void *);
+  progress_changed_cb progress_changed_cb;
 };
 
 
@@ -159,10 +160,10 @@ struct VtResponse * VtFile_getResponse(struct VtFile *file_scan) {
 }
 
 void VtFile_setProgressCallback(struct VtFile *file,
-    void (*progress_changed_cb)(struct VtFile *, void *), void *data)
+    progress_changed_cb cb_func, void *data)
 {
   file->progress_cb_data = data;
-  file->progress_changed_cb = progress_changed_cb;
+  file->progress_changed_cb = cb_func;
 }
 
 /* curl progress data for CURLOPT_XFERINFOFUNCTION callback  */

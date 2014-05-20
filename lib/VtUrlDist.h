@@ -23,7 +23,7 @@ extern "C" {
 // forward declarations
 struct VtUrlDist;
 struct VtResponse;
-
+typedef void (VtUrlDistCb)(const char *url, unsigned long long timestamp, int total, int positives, json_t *raw_json, void *data);
 /**
 * @ingroup VtApiPage
 * @defgroup VtUrlDist VtUrlDist URL Distribution service.  Requires private-API with permissions
@@ -63,10 +63,18 @@ void VtUrlDist_setAllInfo(struct VtUrlDist *vt_udist, bool value);
  * @param value time sinc epoch in miliseconds
  * @return void
  */
-
 void VtUrlDist_setAfter(struct VtUrlDist *vt_udist, unsigned long long value);
 
+
+/**
+ * @brief set the before time paramater
+ *
+ * @param vt_udist ...
+ * @param value  time since epoch in miniseconds
+ * @return void
+ */
 void VtUrlDist_setBefore(struct VtUrlDist *vt_udist, unsigned long long value);
+
 
 
 /**
@@ -79,15 +87,35 @@ void VtUrlDist_setBefore(struct VtUrlDist *vt_udist, unsigned long long value);
 void VtUrlDist_setLimit(struct VtUrlDist *vt_udist, int value);
 
 struct VtResponse * VtUrlDist_getResponse(struct VtUrlDist *vt_udist);
+/**
+ * @brief Get the distribution feed.
+ *
+ * @param vt_udist ...
+ * @return int
+ */
+
 int VtUrlDist_getDistribution(struct VtUrlDist *vt_udist);
 
-int VtUrlDist_parse(struct VtUrlDist* url_dist,
-                    void (*cb)(const char *url, unsigned long long timestamp, int total, int positives, json_t *raw_json, void *data),
-                    void *user_data);
+/**
+ * @brief parse the URL dist results and for each results call the callback function.
+ *
+ * @param url_dist  VtUrlDist object
+ * @param VtUrlDistCb  URL distribution callback function pointer
+ * @param user_data user data to be passed to callback
+ * @return int
+ */
+int VtUrlDist_parse(struct VtUrlDist* url_dist, VtUrlDistCb,  void *user_data);
 
-int VtUrlDist_process(struct VtUrlDist* url_dist,
-                      void (*cb)(const char *url, unsigned long long timestamp, int total, int positives, json_t *raw_json, void *data),
-                      void *user_data);
+
+/**
+ * @brief wraper to combind VtUrlDist_getResponse()  and VtUrlDist_parse()
+ *
+ * @param VtUrlDist callback
+ * @param VtUrlDistCb  callback function pointer
+ * @param user_data user data to be passed to callback
+ * @return int
+ */
+int VtUrlDist_process(struct VtUrlDist* url_dist, VtUrlDistCb, void *user_data);
 
 /**
 *  @}

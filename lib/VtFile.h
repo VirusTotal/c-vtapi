@@ -26,6 +26,7 @@ extern "C" {
 // forward declarations
 struct VtFile;
 struct VtObject;
+typedef void (*progress_changed_cb)(struct VtFile *, void *);
 
 /**
 * @ingroup VtApiPage
@@ -90,7 +91,7 @@ void VtFile_setOffset(struct VtFile *file_obj, const char *offset);
  * @return void
  */
 void VtFile_setProgressCallback(struct VtFile *file,
-   void (*progress_changed_cb)(struct VtFile *, void *), void *data);
+  progress_changed_cb, void *data);
 
 /**
  * @brief Get progress of upload/download
