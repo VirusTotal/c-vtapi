@@ -138,7 +138,6 @@ int VtIpAddr_report(struct VtIpAddr *vt_ip_addr, const char *ip_addr_str) {
   char get_url[512];
   int len = 0;
 
-
   VtApiPage_resetBuffer((struct VtApiPage *) vt_ip_addr);
   curl = curl_easy_init();
   if (!curl) {
@@ -151,7 +150,7 @@ int VtIpAddr_report(struct VtIpAddr *vt_ip_addr, const char *ip_addr_str) {
   if (ret)
     VT_ERROR("Adding key\n");
 
-  len = sprintf(get_url, VT_API_BASE_URL "ip-address/report?apikey=%s&ip=%s",
+  len = snprintf(get_url, 511, VT_API_BASE_URL "ip-address/report?apikey=%s&ip=%s",
                 vt_ip_addr->api_key, ip_addr_str);
   if (len < 0) {
     VT_ERROR("sprintf\n");
