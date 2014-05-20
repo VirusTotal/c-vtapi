@@ -42,6 +42,7 @@ limitations under the License.
 #include "VtObject.h"
 #include "VtApiPage.h"
 #include "VtResponse.h"
+#include "VtFileDist.h"
 
 #include "vtcapi_common.h"
 
@@ -262,7 +263,7 @@ cleanup:
 }
 
 int VtFileDist_parse(struct VtFileDist* url_dist,
-                     void (*cb)(const char *url, unsigned long long timestamp, const char *sha256hash, const char *name, json_t *raw_json, void *data),
+                     VtFileDistCb cb,
                      void *user_data) {
   json_t *resp_json, *file_jobj;
   json_t *url_str_json, *timestamp_json, *name_json, *sha256_json;

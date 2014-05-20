@@ -24,7 +24,7 @@ extern "C" {
 struct VtResponse;
 struct VtFileDist;
 
-typedef void (*file_dist_cb)(const char *url, unsigned long long timestamp,
+typedef void (*VtFileDistCb)(const char *url, unsigned long long timestamp,
   const char *sha256hash, const char *name, json_t *raw_json, void *data);
 
 
@@ -123,11 +123,11 @@ int VtFileDist_getDistribution(struct VtFileDist *vt_dist);
  * @brief Process file distribution.  Internally calls VtFileDist_getDistribution
  *
  * @param vt_dist VtFileDist object
- * @param file_dist_cb callback function, called on every result
+ * @param VtFileDistCb callback function, called on every result
  * @param user_data user data passed to callback function
  * @return int 0 for OK, or error code
  */
-int VtFileDist_process(struct VtFileDist* vt_dist, file_dist_cb, void *user_data);
+int VtFileDist_process(struct VtFileDist* vt_dist, VtFileDistCb, void *user_data);
 
 /**
  *  @}
