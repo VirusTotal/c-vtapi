@@ -120,9 +120,10 @@ void VtFile_cancelOperation(struct VtFile* file);
  *
  * @param file_obj file object
  * @param file_path  path to file for scanning
+ * @param notify_url POST to your server at this URL the report when scan is done. set to NULL if by default if not wanted
  * @return int
  */
-int VtFile_scan(struct VtFile *file_obj, const char *file_path);
+int VtFile_scan(struct VtFile *file_obj, const char *file_path,  const char *notify_url);
 
 /**
  * @brief Rescan a previously submitted file or schedule a scan to be performed in the future.
@@ -211,7 +212,7 @@ int VtFile_clusters(struct VtFile *file_obj, const char *cluster_date,
  * @return int.  0 for OK or error code
  */
 int VtFile_download(struct VtFile *file_obj, const char *hash,
-                    size_t (*cb)(char *ptr, size_t size, size_t nmemb, void *userdata), void *user_data);
+  size_t (*cb)(char *ptr, size_t size, size_t nmemb, void *userdata), void *user_data);
 
 /**
  * @brief Download and save to a file

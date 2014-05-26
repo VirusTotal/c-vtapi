@@ -264,7 +264,7 @@ static void set_std_curl_data(struct VtFile *file, CURL *curl)
 
 }
 
-int VtFile_scan(struct VtFile *file_scan, const char *file_path) {
+int VtFile_scan(struct VtFile *file_scan, const char *file_path, const char *notify_url) {
 
   CURL *curl;
   CURLcode res;
@@ -305,6 +305,15 @@ int VtFile_scan(struct VtFile *file_scan, const char *file_path) {
                      CURLFORM_END);
   if (ret)
     VT_ERROR("Adding filename %s\n", file_path);
+
+
+  if (notify_url && notify_url[0]) {
+    ret = curl_formadd(&formpost,
+                       &lastptr,
+                       CURLFORM_COPYNAME, "notify_url",
+                       CURLFORM_COPYCONTENTS,  notify_url,
+                       CURLFORM_END);
+  }
 
   ret = curl_formadd(&formpost,
                      &lastptr,
@@ -1018,7 +1027,8 @@ cleanup:
   return ret;
 }
 
-static size_t download_to_file_cb(char *ptr, size_t size, size_t nmemb, void *userdata) {
+static size_t download_to_file_cb(char *ptr, size_t size, size_t nmemb, void *userdata)
+{
   struct DlCallbackData * cb_data = (struct DlCallbackData *) userdata;
   int sz;
 
