@@ -1,3 +1,8 @@
+VirusTotal C API library
+This libary is designed to work with both the:	
+	* The public API https://www.virustotal.com/en/documentation/public-api/
+	* The private API https://www.virustotal.com/en/documentation/private-api/
+
 Runtime Dependencies
 	* curl or libcurl  (curl-devel package on some distributions)
 	* janson   (janson-devel package on some distributions)
@@ -8,7 +13,7 @@ Compiling Dependencies
 	* libtool
 
 
-to compile:
+To compile on Linux, BSD, or Mac OS X:
 
 autoreconf -fi
 ./configure
@@ -18,6 +23,8 @@ make
 If you have doxygen installed on your system you may optionally generate developer doxygen docs:
 make doxygen-doc
 
+
+Usage on MS Windows is partially functioal now, but requires more patches to be fully supported.
 
 Windows compilation:
 	* Installl mingw
