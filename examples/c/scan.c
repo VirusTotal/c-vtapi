@@ -117,7 +117,7 @@ int scan_file(struct VtFile *scan, const char *path)
     return ret;
 
   if (stat_buf.st_size < (64*1024*1024) ) {
-    ret = VtFile_scan(scan, path);
+    ret = VtFile_scan(scan, path, NULL);
   } else {
     ret = VtFile_scanBigFile(scan, path);
     printf(" VtFile_scanBigFile ret =%d \n", ret);
