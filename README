@@ -12,6 +12,11 @@ Compiling Dependencies
 	* gcc
 	* libtool
 
+Debian or Ubuntu Dependencies:
+	sudo apt-get install automake autoconf libtool libjansson-dev libcurl4-openssl-dev
+
+Redhat, Fedora, Centos or RPM based distros:
+	yum install libtool jansson-devl
 
 To compile on Linux, BSD, or Mac OS X:
 
