@@ -5,7 +5,7 @@ This libary is designed to work with both the:
 
 Runtime Dependencies
 	* curl or libcurl  (curl-devel package on some distributions)
-	* janson   (janson-devel package on some distributions)
+	* janson version 2.2 (min) (2.5 or newer recommeded.  janson-devel on some distros)
 
 Compiling Dependencies
 	* automake, autoconf  (might be autotools package on your platform)
