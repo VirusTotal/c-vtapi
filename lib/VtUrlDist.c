@@ -152,6 +152,7 @@ int VtUrlDist_getDistribution(struct VtUrlDist *vt_udist) {
 
   CURL *curl;
   CURLcode res;
+  long http_response_code = 0;
   int ret = 0;
   char get_url[512];
   int len = 0;
@@ -169,7 +170,7 @@ int VtUrlDist_getDistribution(struct VtUrlDist *vt_udist) {
   if (ret)
     VT_ERROR("Adding key\n");
 
-  len = snprintf(get_url, strlen(get_url)-1,  VT_API_BASE_URL "url/distribution?apikey=%s", vt_udist->api_key);
+  len = snprintf(get_url, sizeof(get_url)-1,  VT_API_BASE_URL "url/distribution?apikey=%s", vt_udist->api_key);
   if (len < 0) {
     VT_ERROR("sprintf\n");
     goto cleanup;
@@ -230,8 +231,17 @@ int VtUrlDist_getDistribution(struct VtUrlDist *vt_udist) {
   /* Check for errors */
   if(res != CURLE_OK) {
     VT_ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+    VT_ERROR("URL=%s\n", get_url);
     goto cleanup;
+  } else {
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_response_code);
+    if (http_response_code != 200) {
+      VT_ERROR("HTTP Response code: %ld\n", http_response_code);
+      ret = http_response_code;
+      goto cleanup;
+    }
   }
+
 
   DBG(1, "Page:\n%s\n",vt_udist->buffer);
 
