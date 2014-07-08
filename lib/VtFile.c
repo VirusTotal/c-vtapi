@@ -212,7 +212,7 @@ void VtFile_getProgress(struct VtFile *file, int64_t *dltotal, int64_t *dlnow, i
   VT_OBJECT_LOCK(file);
   *dltotal = file->dltotal;
   *dlnow = file->dlnow;
-  *ul_total = file->ulnow;
+  *ul_total = file->ultotal;
   *ul_now = file->ulnow;
   VT_OBJECT_UNLOCK(file);
 }
@@ -1170,6 +1170,9 @@ int VtFile_scanBigFile(struct VtFile *file_scan, const char * path) {
   /* Perform the request, res will get the return code */
   res = curl_easy_perform(curl);
   DBG(1, "Perform done\n");
+
+  DBG(1, "Page:\n%s\n",file_scan->buffer);
+
   /* Check for errors */
   if(res != CURLE_OK) {
     VT_ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
@@ -1185,7 +1188,6 @@ int VtFile_scanBigFile(struct VtFile *file_scan, const char * path) {
   }
 
 
-  DBG(1, "Page:\n%s\n",file_scan->buffer);
 
   if (file_scan->response)
     VtResponse_put(&file_scan->response);
