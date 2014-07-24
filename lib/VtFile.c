@@ -1075,7 +1075,7 @@ int VtFile_uploadUrl(struct VtFile *file_scan, char **url) {
                  file_scan->api_key);
 
   curl_easy_setopt(curl, CURLOPT_URL, get_url);
-
+  curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L); //  API will redirect 
   set_std_curl_data(file_scan, curl);
 
 
@@ -1126,7 +1126,7 @@ int VtFile_scanBigFile(struct VtFile *file_scan, const char * path) {
   struct curl_httppost *formpost=NULL;
   struct curl_httppost *lastptr=NULL;
   struct curl_slist *headerlist=NULL;
-  static const char header_buf[] = "Expect:";
+  const char header_buf[] = "Expect:";
   long http_response_code = 0;
 
 
@@ -1141,7 +1141,7 @@ int VtFile_scanBigFile(struct VtFile *file_scan, const char * path) {
     goto cleanup;
   }
 
-    headerlist = curl_slist_append(headerlist, header_buf);
+  headerlist = curl_slist_append(headerlist, header_buf);
 
   DBG(1, "File to send '%s'\n", path);
   DBG(1, "Api Key =  '%s'\n", file_scan->api_key);
@@ -1162,6 +1162,7 @@ int VtFile_scanBigFile(struct VtFile *file_scan, const char * path) {
                      CURLFORM_END);
 
   curl_easy_setopt(curl, CURLOPT_URL, url);
+  curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L); // download API will redirect to link
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
   curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost); // set form
   set_std_curl_data(file_scan, curl);
@@ -1206,6 +1207,12 @@ int VtFile_scanBigFile(struct VtFile *file_scan, const char * path) {
   DBG(1, "cleaning up \n");
   if (url)
     free(url);
+
+  if (formpost)
+    curl_formfree(formpost);  // cleanup the formpost chain
+
+  if (headerlist)
+    curl_slist_free_all (headerlist); // free headers
 
   return ret;
 }
