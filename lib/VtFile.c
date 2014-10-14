@@ -212,7 +212,7 @@ void VtFile_getProgress(struct VtFile *file, int64_t *dltotal, int64_t *dlnow, i
   VT_OBJECT_LOCK(file);
   *dltotal = file->dltotal;
   *dlnow = file->dlnow;
-  *ul_total = file->ulnow;
+  *ul_total = file->ultotal;
   *ul_now = file->ulnow;
   VT_OBJECT_UNLOCK(file);
 }
@@ -1075,7 +1075,7 @@ int VtFile_uploadUrl(struct VtFile *file_scan, char **url) {
                  file_scan->api_key);
 
   curl_easy_setopt(curl, CURLOPT_URL, get_url);
-
+  curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L); //  API will redirect 
   set_std_curl_data(file_scan, curl);
 
 
@@ -1126,7 +1126,7 @@ int VtFile_scanBigFile(struct VtFile *file_scan, const char * path) {
   struct curl_httppost *formpost=NULL;
   struct curl_httppost *lastptr=NULL;
   struct curl_slist *headerlist=NULL;
-  static const char header_buf[] = "Expect:";
+  const char header_buf[] = "Expect:";
   long http_response_code = 0;
 
 
@@ -1141,7 +1141,7 @@ int VtFile_scanBigFile(struct VtFile *file_scan, const char * path) {
     goto cleanup;
   }
 
-    headerlist = curl_slist_append(headerlist, header_buf);
+  headerlist = curl_slist_append(headerlist, header_buf);
 
   DBG(1, "File to send '%s'\n", path);
   DBG(1, "Api Key =  '%s'\n", file_scan->api_key);
@@ -1162,6 +1162,7 @@ int VtFile_scanBigFile(struct VtFile *file_scan, const char * path) {
                      CURLFORM_END);
 
   curl_easy_setopt(curl, CURLOPT_URL, url);
+  curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L); // download API will redirect to link
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
   curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost); // set form
   set_std_curl_data(file_scan, curl);
@@ -1170,6 +1171,9 @@ int VtFile_scanBigFile(struct VtFile *file_scan, const char * path) {
   /* Perform the request, res will get the return code */
   res = curl_easy_perform(curl);
   DBG(1, "Perform done\n");
+
+  DBG(1, "Page:\n%s\n",file_scan->buffer);
+
   /* Check for errors */
   if(res != CURLE_OK) {
     VT_ERROR("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
@@ -1185,7 +1189,6 @@ int VtFile_scanBigFile(struct VtFile *file_scan, const char * path) {
   }
 
 
-  DBG(1, "Page:\n%s\n",file_scan->buffer);
 
   if (file_scan->response)
     VtResponse_put(&file_scan->response);
@@ -1204,6 +1207,12 @@ int VtFile_scanBigFile(struct VtFile *file_scan, const char * path) {
   DBG(1, "cleaning up \n");
   if (url)
     free(url);
+
+  if (formpost)
+    curl_formfree(formpost);  // cleanup the formpost chain
+
+  if (headerlist)
+    curl_slist_free_all (headerlist); // free headers
 
   return ret;
 }

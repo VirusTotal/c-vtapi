@@ -197,6 +197,14 @@ extern int debug_level;
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]) + __must_be_array(arr))
 
 
+#ifndef json_array_foreach
+//  json_array_foreach() was added in Jansson 2.5 in Aug 2013
+// This macro will make it work on jansson 2.2 and later
+#define json_array_foreach(array, index, value) \
+  for(index = 0; \
+    index < json_array_size(array) && (value = json_array_get(array, index)); \
+    index++)
+#endif
 
 
 
