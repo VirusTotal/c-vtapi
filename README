@@ -23,6 +23,14 @@ To compile on Linux, BSD, or Mac OS X:
 autoreconf -fi
 ./configure
 make
+sudo make install
+
+
+If you wish to build the examples in the 'examples' directory:
+autoreconf -fi
+./configure --enable-examples
+make
+sudo make install
 
 
 If you have doxygen installed on your system you may optionally generate developer doxygen docs:
@@ -51,3 +59,7 @@ For some example test programs using API.
 url --apikey=YOUR_KEY --scan http://youtube.com
 url --apikey=YOUR_KEY --report http://youtube.com
 
+
+scan --help
+./scan --apikey YOUR_KEY --filescan /bin/ls
+./scan --apikey YOUR_KEY --report HASH
