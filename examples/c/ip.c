@@ -29,12 +29,11 @@ limitations under the License.
 #define DBG(FMT,ARG...) fprintf(stderr, "%s:%d: " FMT, __FUNCTION__, __LINE__, ##ARG);
 
 void print_usage(const char *prog_name) {
-  printf("%s < --apikey YOUR_API_KEY >  < --ip  1.2.3.4. --> \n", prog_name);
+  printf("%s < --apikey YOUR_API_KEY >  < --report  1.2.3.4. --> \n", prog_name);
   printf("  --apikey YOUR_API_KEY   Your virus total API key.  This arg 1st \n");
-  printf("  --scan      scan IP Address\n");
   printf("  --report    get report for IP Adress\n");
   printf("  --verbose   be verbose\n");
-  printf("  --help      print this helpmessage");
+  printf("  --help      print this help message\n");
 }
 
 int main(int argc, char * const *argv) {
@@ -56,7 +55,6 @@ int main(int argc, char * const *argv) {
   while (1) {
     int option_index = 0;
     static struct option long_options[] = {
-      {"scan",  required_argument,    0,  's' },
       {"report",  required_argument,    0,  'r' },
       {"apikey",  required_argument,     0,  'a'},
       {"verbose", optional_argument,  0,  'v' },
@@ -74,27 +72,6 @@ int main(int argc, char * const *argv) {
       api_key = strdup(optarg);
       printf(" apikey: %s \n", optarg);
       VtIpAddr_setApiKey(ip_report, optarg);
-      break;
-
-    case 's':
-      if (!api_key) {
-        printf("Must set --apikey first\n");
-        exit(1);
-      }
-
-      ret = VtIpAddr_report(ip_report, optarg);
-      DBG("Filescan ret=%d\n", ret);
-      if (ret) {
-        printf("Error: %d \n", ret);
-      } else {
-        response = VtIpAddr_getResponse(ip_report);
-        str = VtResponse_toJSONstr(response, VT_JSON_FLAG_INDENT);
-        if (str) {
-          printf("Response:\n%s\n", str);
-          free(str);
-        }
-        VtResponse_put(&response);
-      }
       break;
 
     case 'r':
