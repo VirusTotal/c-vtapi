@@ -31,7 +31,9 @@ limitations under the License.
 void print_usage(const char *prog_name) {
   printf("%s < --apikey YOUR_API_KEY >  < --ip  1.2.3.4. --> \n", prog_name);
   printf("  --apikey YOUR_API_KEY   Your virus total API key.  This arg 1st \n");
-  printf("  --ip             IP Address\n");
+  printf("  --report      get report for IP Address\n");
+  printf("  --verbose     be verbose\n");
+  printf("  --help        print this help message\n");;
 }
 
 int main(int argc, char * const *argv) {
