@@ -272,7 +272,7 @@ int VtUrlDist_parse(struct VtUrlDist* url_dist,
   unsigned int index;
 
   if (!url_dist || !url_dist->response) {
-    VT_ERROR("No data recieved\n");
+    VT_ERROR("No data received\n");
     return -1;
   }
 
