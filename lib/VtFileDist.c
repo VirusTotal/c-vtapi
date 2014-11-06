@@ -270,7 +270,7 @@ int VtFileDist_parse(struct VtFileDist* url_dist,
   int index;
 
   if (!url_dist || !url_dist->response) {
-    VT_ERROR("No data recieved\n");
+    VT_ERROR("No data received\n");
     return -1;
   }
 
