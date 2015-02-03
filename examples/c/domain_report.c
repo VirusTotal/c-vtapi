@@ -29,9 +29,11 @@ limitations under the License.
 #define DBG(FMT,ARG...) fprintf(stderr, "%s:%d: " FMT, __FUNCTION__, __LINE__, ##ARG);
 
 void print_usage(const char *prog_name) {
-  printf("%s < --apikey YOUR_API_KEY >  < --ip  1.2.3.4. --> \n", prog_name);
+  printf("%s < --apikey YOUR_API_KEY >  < --report  example.com --> \n", prog_name);
   printf("  --apikey YOUR_API_KEY   Your virus total API key.  This arg 1st \n");
-  printf("  --ip             IP Address\n");
+  printf("  --report      get report for IP Address\n");
+  printf("  --verbose     be verbose\n");
+  printf("  --help        print this help message\n");;
 }
 
 int main(int argc, char * const *argv) {
