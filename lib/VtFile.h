@@ -138,7 +138,10 @@ int VtFile_scan(struct VtFile *file_obj, const char *file_path,  const char *not
  *             when scan is done. set to NULL if by default if not wanted.
  * @return int
  */
-int VtFile_scanMemBuf(struct VtFile *file_scan, const char *filename,  const unsigned char *memory_buffer, unsigned int buffer_length, const char *notify_url);
+int VtFile_scanMemBuf(struct VtFile *file_scan, const char *filename,
+                      const unsigned char *memory_buffer,
+                      unsigned int buffer_length,
+                      const char *notify_url);
 
 /**
  * @brief Rescan a previously submitted file or schedule a scan to be performed in the future.
