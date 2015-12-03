@@ -125,6 +125,21 @@ void VtFile_cancelOperation(struct VtFile* file);
  */
 int VtFile_scan(struct VtFile *file_obj, const char *file_path,  const char *notify_url);
 
+
+/**
+ * @brief Scan a file that is already buffered in memory
+ *
+ * @param file_scan file object
+ * @param filename  file name that shows in VirusTotal report. Required paramter
+ * @param memory_buffer memory buffer where the file is stored.
+ *            This must me unmodified until the function returns
+ * @param buffer_length length of the file
+ * @param notify_url POST to your server at this URL the report
+ *             when scan is done. set to NULL if by default if not wanted.
+ * @return int
+ */
+int VtFile_scanMemBuf(struct VtFile *file_scan, const char *filename,  const unsigned char *memory_buffer, unsigned int buffer_length, const char *notify_url);
+
 /**
  * @brief Rescan a previously submitted file or schedule a scan to be performed in the future.
  *

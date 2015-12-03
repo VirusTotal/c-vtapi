@@ -43,12 +43,14 @@ static bool keep_running = true;
 
 void print_usage(const char *prog_name) {
   printf("%s < --apikey YOUR_API_KEY >   [ --filescan FILE1 ] [ --filescan FILE2 ]\n", prog_name);
-  printf("    --apikey YOUR_API_KEY          Your virus total API key.  This arg 1st \n");
-  printf("    --filescan FILE          File to scan.   Note may specify this multiple times for multiple files\n");
-  printf("    --report SHA/MD5          Get a Report on a resource\n");
-  printf("    --cluster YYYY-MM-DD          Get a Report on a resource\n");
-  printf("    --download <hash>            Output file for download\n");
-  printf("    --out <file>            Output file for download\n");
+  printf("  --apikey <API_KEY>         Your virus total API key. This arg 1st\n");
+  printf("  --filescan <FILE>          File to scan, may specify this multiple times\n");
+  printf("  --scaninput [filename]     Scan stdinput.  Scan with buffer from ram.\n");
+  printf("             example:  cat file.bin | scan --apikey ABC --scaninput   \n");
+  printf("  --report <SHA/MD5>          Get a Report on a resource\n");
+  printf("  --cluster <YYYY-MM-DD>      Get a Report on a resource\n");
+  printf("  --download <hash>           Output file for download\n");
+  printf("  --out <file>              Output file for download\n");
 }
 
 long long get_file_size(const char *path) {
@@ -127,6 +129,41 @@ int scan_file(struct VtFile *scan, const char *path)
   return ret;
 }
 
+
+int scan_stdinput(struct VtFile *scan, const char * file_name)
+{
+  int ret;
+#define MAX_SCAN_SIZE (32 * 1024 *1024)
+  unsigned char *buff = NULL;
+  size_t size_read;
+
+
+  buff = malloc(MAX_SCAN_SIZE+1024);
+  if (!buff)
+    return -1;
+
+  size_read = fread(buff, 1, MAX_SCAN_SIZE, stdin);
+  if (size_read < 1) {
+    printf("ERROR %d \n", (int) size_read);
+    free(buff);
+    return -1;
+  }
+
+  printf("read %d bytes\n",(int) size_read);
+
+  // if filename not set, then set this required paramter
+  if (!file_name || !file_name[0])
+    file_name = "filename";
+
+  ret = VtFile_scanMemBuf(scan, file_name, buff, size_read, NULL);
+
+  free(buff);
+
+  return ret;
+}
+
+
+
 int main(int argc, char * const *argv) {
   int c;
   int ret = 0;
@@ -155,6 +192,7 @@ int main(int argc, char * const *argv) {
       {"filescan",  required_argument,    0,  'f' },
       {"rescan",  required_argument,    0,  'r' },
       {"report",  required_argument,    0,  'i' },
+	  {"scaninput",  optional_argument,    0,  'I' },
       {"apikey",  required_argument,     0,  'a'},
       {"clusters",  required_argument,     0,  'c'},
       {"download",  required_argument,     0,  'd'},
@@ -210,6 +248,26 @@ int main(int argc, char * const *argv) {
       }
 
       ret = scan_file(file_scan, optarg);
+      // PRINT("Filescan ret=%d\n", ret);
+      if (ret) {
+        printf("Error: %d \n", ret);
+      } else {
+        response = VtFile_getResponse(file_scan);
+        str = VtResponse_toJSONstr(response, VT_JSON_FLAG_INDENT);
+        if (str) {
+          printf("Response:\n%s\n", str);
+          free(str);
+        }
+        VtResponse_put(&response);
+      }
+      break;
+    case 'I': // scan from stdinput
+      if (!api_key) {
+        printf("Must set --apikey first\n");
+        exit(1);
+      }
+
+      ret = scan_stdinput(file_scan, optarg);
       // PRINT("Filescan ret=%d\n", ret);
       if (ret) {
         printf("Error: %d \n", ret);
