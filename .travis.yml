@@ -1,0 +1,17 @@
+language: c
+compiler:
+  - gcc
+env:
+  # Default build. Release.
+  - BUILD_ARGS=""
+  # Build without example test programs
+  - BUILD_ARGS="--disable-examples"
+  #  With examples
+  - BUILD_ARGS="--enable-examples"
+
+#before_install:
+#  - sudo apt-get update -qq
+#  - sudo apt-get install automake1.9
+#  - sudo pip install cpp-coveralls --use-mirrors
+script: 
+  - autoreconf -fi && ./configure $BUILD_ARGS && make
