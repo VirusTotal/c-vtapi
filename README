@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/VirusTotal/c-vtapi.svg?branch=travis)](https://travis-ci.org/VirusTotal/c-vtapi)
+
 VirusTotal C API library
 This libary is designed to work with both the:	
 	* The public API https://www.virustotal.com/en/documentation/public-api/

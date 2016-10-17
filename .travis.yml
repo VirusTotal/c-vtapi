@@ -1,0 +1,17 @@
+language: c
+compiler:
+  - gcc
+env:
+  # Default build. Release.
+  - BUILD_ARGS=""
+  # Build without example test programs
+  - BUILD_ARGS="--disable-examples"
+  #  With examples
+  - BUILD_ARGS="--enable-examples"
+
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install automake autoconf libtool libjansson-dev libcurl4-openssl-dev
+
+script: 
+  - autoreconf -fi && ./configure $BUILD_ARGS && make
