@@ -171,9 +171,9 @@ int VtFileDist_getDistribution(struct VtFileDist *vt_udist) {
   if (ret)
     VT_ERROR("Adding key\n");
 
-  len = sprintf(get_url, VT_API_BASE_URL "file/distribution?apikey=%s", vt_udist->api_key);
+  len = snprintf(get_url, 511, VT_API_BASE_URL "file/distribution?apikey=%s", vt_udist->api_key);
   if (len < 0) {
-    VT_ERROR("sprintf\n");
+    VT_ERROR("snprintf\n");
     goto cleanup;
   }
 
