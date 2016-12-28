@@ -155,7 +155,7 @@ int VtDomain_report(struct VtDomain *vt_domain, const char *ip_addr_str) {
   if (ret)
     VT_ERROR("Adding key\n");
 
-  len = sprintf(get_url, VT_API_BASE_URL "domain/report?apikey=%s&domain=%s",
+  len = snprintf(get_url, 511, VT_API_BASE_URL "domain/report?apikey=%s&domain=%s",
                 vt_domain->api_key, ip_addr_str);
   if (len < 0) {
     VT_ERROR("sprintf\n");
