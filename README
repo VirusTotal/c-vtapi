@@ -55,13 +55,11 @@ Windows compilation (MS Visual Studio)
 	* Compile curl  (see janson docs)
 	
 
-See Examples in examples/
-For some example test programs using API.
+See Examples in the examples/ directory for some example test programs which use the API.
 
-url --apikey=YOUR_KEY --scan http://youtube.com
-url --apikey=YOUR_KEY --report http://youtube.com
+   url --apikey=YOUR_KEY --scan http://youtube.com
+   url --apikey=YOUR_KEY --report http://youtube.com
 
-
-scan --help
-./scan --apikey YOUR_KEY --filescan /bin/ls
-./scan --apikey YOUR_KEY --report HASH
+   scan --help
+   ./scan --apikey YOUR_KEY --filescan /bin/ls
+   ./scan --apikey YOUR_KEY --report HASH
