@@ -27,17 +27,14 @@ autoreconf -fi
 make
 sudo make install
 
-
 If you wish to build the examples in the 'examples' directory:
 autoreconf -fi
 ./configure --enable-examples
 make
 sudo make install
 
-
 If you have doxygen installed on your system you may optionally generate developer doxygen docs:
 make doxygen-doc
-
 
 Usage on MS Windows is partially functioal now, but requires more patches to be fully supported.
 
@@ -53,13 +50,12 @@ Windows compilation (MS Visual Studio)
 	* install CMake
 	* Compile jansson  (see janson docs)
 	* Compile curl  (see janson docs)
-	
 
 See Examples in the examples/ directory for some example test programs which use the API.
 
-   url --apikey=YOUR_KEY --scan http://youtube.com
-   url --apikey=YOUR_KEY --report http://youtube.com
+	url --apikey=YOUR_KEY --scan http://youtube.com
+	url --apikey=YOUR_KEY --report http://youtube.com
 
-   scan --help
-   ./scan --apikey YOUR_KEY --filescan /bin/ls
-   ./scan --apikey YOUR_KEY --report HASH
+	scan --help
+	./scan --apikey YOUR_KEY --filescan /bin/ls
+	./scan --apikey YOUR_KEY --report HASH
