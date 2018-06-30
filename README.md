@@ -21,7 +21,7 @@ sudo apt-get install automake autoconf libtool libjansson-dev libcurl4-openssl-d
 
 Redhat, Fedora, Centos or RPM based distros:
 ```
-yum install libtool jansson-devel
+yum install libtool jansson-devel libcurl-devel
 ```
 
 To compile on Linux, BSD, or Mac OS X:
@@ -65,7 +65,7 @@ Windows compilation (MS Visual Studio)
 
 See Examples in examples/
 For some example test programs using API.
-
+```
 url --apikey=YOUR_KEY --scan http://youtube.com
 url --apikey=YOUR_KEY --report http://youtube.com
 
@@ -73,3 +73,4 @@ url --apikey=YOUR_KEY --report http://youtube.com
 scan --help
 ./scan --apikey YOUR_KEY --filescan /bin/ls
 ./scan --apikey YOUR_KEY --report HASH
+```
