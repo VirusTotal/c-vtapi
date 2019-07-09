@@ -1,0 +1,14 @@
+41224a3df3bd742c1fff54992c492a57  usr/include/VtApiPage.h
+277e6082091bf29de92b32c4f40ba82c  usr/include/VtComments.h
+76725e7bb0cbec8c9d0d00a3c45c1fde  usr/include/VtDomain.h
+ea1dda8194b071a218d1600730691a92  usr/include/VtFile.h
+208e7be393122d10caa4300b53d97347  usr/include/VtFileDist.h
+89782e64438c7954ebb89117f4166a06  usr/include/VtIpAddr.h
+6af754d16800812bab64eaea1585a07d  usr/include/VtResponse.h
+e0270498422f2f898bde4107ee942e1e  usr/include/VtUrl.h
+d6546f011add5ffb21d881375244321c  usr/include/VtUrlDist.h
+5e63c5e4fa8db02a0241caefa691a1d0  usr/lib/x86_64-linux-gnu/libcvtapi.a
+0b4545e5df10a772a9f83fd743942372  usr/lib/x86_64-linux-gnu/libcvtapi.la
+521a23eb783fc35b3e7ca9922107fcb9  usr/lib/x86_64-linux-gnu/libcvtapi.so.1.0.0
+e0c189c3d9663809ae854d812b7426f3  usr/share/doc/libvtapi-c/changelog.gz
+dd34a25e2e3d2879316e387106a0b3f5  usr/share/doc/libvtapi-c/copyright

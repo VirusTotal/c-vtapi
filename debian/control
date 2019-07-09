@@ -1,0 +1,13 @@
+Source: libvtapi-c
+Section: security
+Priority: standard
+Maintainer: Aurora of Earth<auroraofearth@ya.ru>
+Build-Depends: automake, doxygen, autoconf, libtool, libjansson-dev, libcurl4-openssl-dev, make, debhelper
+Homepage: https://github.com/VirusTotal/c-vtapi
+Vcs-Browser: https://github.com/VirusTotal/c-vtapi
+Vcs-Git: https://github.com/VirusTotal/c-vtapi.git
+
+Package: libvtapi-c
+Architecture: any
+Depends: libc6
+Description: Official VirusTotal C library

@@ -1,0 +1,12 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@
+
+make:
+	mkdir -p debian/libvtapi-c/usr/local/lib
+	autoreconf -fi
+	./configure --configure debian/libvtapi-c/usr/local
+	make
+	make install
+	

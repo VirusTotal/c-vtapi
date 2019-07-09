@@ -1,0 +1,12 @@
+Package: libvtapi-c-dbgsym
+Source: libvtapi-c
+Version: 0.1
+Auto-Built-Package: debug-symbols
+Architecture: amd64
+Maintainer: Aurora of Earth<auroraofearth@ya.ru>
+Installed-Size: 131
+Depends: libvtapi-c (= 0.1)
+Section: debug
+Priority: optional
+Description: debug symbols for libvtapi-c
+Build-Ids: 0ab7728f5eea9ca175900e3e6acb5340ec2141e5
