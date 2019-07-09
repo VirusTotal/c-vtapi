@@ -3,10 +3,14 @@
 %:
 	dh $@
 
-make:
+build:
 	mkdir -p debian/libvtapi-c/usr/local/lib
 	autoreconf -fi
 	./configure --configure debian/libvtapi-c/usr/local
 	make
 	make install
-	
+
+clean:
+	rm -R debian/libvtapi-c/usr/local/lib
+	make clean
+
