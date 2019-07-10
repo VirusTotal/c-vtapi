@@ -53,7 +53,7 @@ extern "C" {
 
 #define VT_OBJECT_LOCK(obj)  do { \
     DBG(3, "LOCKING obj %p\n", obj); \
-    WaitForSingleObject(&((struct VtObject*)obj)->mutex, INFINTE); \
+    WaitForSingleObject(&((struct VtObject*)obj)->mutex, INFINITE); \
     DBG(3, "LOCKED %p\n", obj);  } while(0)
 
 #define VT_OBJECT_UNLOCK(obj) do { \
