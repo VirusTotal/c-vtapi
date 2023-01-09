@@ -377,11 +377,12 @@ cleanup:
 
 int VtFile_scanMemBuf(struct VtFile *file_scan, const char *filename,  const unsigned char *memory_buffer, unsigned int buffer_length, const char *notify_url) {
 
-  CURL *curl;
+  CURL *curl = NULL;
   CURLcode res;
+  curl_mime *mime = NULL;
+  curl_mimepart *part = NULL;
   int ret = 0;
   struct curl_httppost *formpost=NULL;
-  struct curl_httppost *lastptr=NULL;
   struct curl_slist *headerlist=NULL;
   static const char header_buf[] = "Expect:";
   long http_response_code = 0;
@@ -403,38 +404,39 @@ int VtFile_scanMemBuf(struct VtFile *file_scan, const char *filename,  const uns
     VT_ERROR("init curl\n");
     goto cleanup;
   }
+  mime = curl_mime_init(curl);
+  if (!mime) {
+    VT_ERROR("init curl mime\n");
+    goto cleanup;
+  }
   // initialize custom header list (stating that Expect: 100-continue is not wanted
   headerlist = curl_slist_append(headerlist, header_buf);
 
   DBG(1, "Api Key =  '%s'\n", file_scan->api_key);
-
-  ret = curl_formadd(&formpost,
-                     &lastptr,
-                     CURLFORM_COPYNAME, "file",
-                     CURLFORM_BUFFER,  filename,
-                     CURLFORM_BUFFERPTR,  memory_buffer,
-                     CURLFORM_BUFFERLENGTH, buffer_length,
-                     CURLFORM_END);
+  part = curl_mime_addpart(mime);
+  ret = curl_mime_filedata(part, filename);
   if (ret)
     VT_ERROR("Adding file memory buffer\n");
 
 
   if (notify_url && notify_url[0]) {
-    ret = curl_formadd(&formpost,
-                       &lastptr,
-                       CURLFORM_PTRNAME, "notify_url",
-                       CURLFORM_COPYCONTENTS,  notify_url,
-                       CURLFORM_END);
-  }
+    part = curl_mime_addpart(mime);
+    ret = curl_mime_data(part, notify_url, CURL_ZERO_TERMINATED);
+    if (ret)
+      VT_ERROR("Adding notify_url value\n");
+    ret = curl_mime_name(part, "notify_url");
 
-  ret = curl_formadd(&formpost,
-                     &lastptr,
-                     CURLFORM_PTRNAME, "apikey",
-                     CURLFORM_COPYCONTENTS, file_scan->api_key,
-                     CURLFORM_END);
+    if (ret)
+      VT_ERROR("Adding notify_url name\n");
+  }
+  part = curl_mime_addpart(mime);
+  ret = curl_mime_data(part, file_scan->api_key, CURL_ZERO_TERMINATED);
+  if (ret)
+    VT_ERROR("Adding key value\n");
+  ret = curl_mime_name(part, "apikey");
 
   if (ret)
-    VT_ERROR("Adding key\n");
+    VT_ERROR("Adding key name\n");
 
   curl_easy_setopt(curl, CURLOPT_URL, VT_API_BASE_URL "file/scan");
 
@@ -1186,7 +1188,7 @@ int VtFile_uploadUrl(struct VtFile *file_scan, char **url) {
                  file_scan->api_key);
 
   curl_easy_setopt(curl, CURLOPT_URL, get_url);
-  curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L); //  API will redirect 
+  curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L); //  API will redirect
   set_std_curl_data(file_scan, curl);
 
 
