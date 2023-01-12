@@ -155,11 +155,12 @@ int VtComments_setResource(struct VtComments *vt_comments, const char *value) {
 
 
 int VtComments_add(struct VtComments *vt_comments, const char *comment) {
-  CURL *curl;
+  CURL *curl = NULL;
   CURLcode res;
-  int ret = 0;
+  curl_mime *mime = NULL;
+  curl_mimepart *part = NULL;
   struct curl_httppost *formpost=NULL;
-  struct curl_httppost *lastptr=NULL;
+  int ret = 0;
   struct curl_slist *headerlist=NULL;
   static const char header_buf[] = "Expect:";
 
@@ -180,28 +181,30 @@ int VtComments_add(struct VtComments *vt_comments, const char *comment) {
 
   DBG(1, "Api Key =  '%s'\n", vt_comments->api_key);
 
-  ret = curl_formadd(&formpost,
-                     &lastptr,
-                     CURLFORM_COPYNAME, "resource",
-                     CURLFORM_COPYCONTENTS,  vt_comments->resource,
-                     CURLFORM_END);
+  mime = curl_mime_init(curl);
+  if (!mime) {
+    VT_ERROR("init curl mime\n");
+    goto cleanup;
+  }
+
+  part = curl_mime_addpart(mime);
+  ret = curl_mime_data(part, vt_comments->resource, CURL_ZERO_TERMINATED);
+  curl_mime_name(part, "resource");
+
   if (ret)
     VT_ERROR("Adding resource %s\n", vt_comments->resource);
 
   /* Fill in the filename field */
-  ret = curl_formadd(&formpost,
-                     &lastptr,
-                     CURLFORM_COPYNAME, "comment",
-                     CURLFORM_COPYCONTENTS, comment,
-                     CURLFORM_END);
+  part = curl_mime_addpart(mime);
+  ret = curl_mime_data(part, comment, CURL_ZERO_TERMINATED);
+  curl_mime_name(part, "comment");
+
   if (ret)
     VT_ERROR("Adding comment %s\n", comment);
 
-  ret = curl_formadd(&formpost,
-                     &lastptr,
-                     CURLFORM_COPYNAME, "apikey",
-                     CURLFORM_COPYCONTENTS, vt_comments->api_key,
-                     CURLFORM_END);
+  part = curl_mime_addpart(mime);
+  ret = curl_mime_data(part, vt_comments->api_key, CURL_ZERO_TERMINATED);
+  curl_mime_name(part, "apikey");
 
   if (ret)
     VT_ERROR("Adding key\n");
@@ -344,5 +347,3 @@ cleanup:
 
   return ret;
 }
-
-
