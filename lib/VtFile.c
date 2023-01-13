@@ -266,12 +266,13 @@ static void set_std_curl_data(struct VtFile *file, CURL *curl)
 
 int VtFile_scan(struct VtFile *file_scan, const char *file_path, const char *notify_url) {
 
-  CURL *curl;
+  CURL *curl = NULL;
   CURLcode res;
   int ret = 0;
-  struct curl_httppost *formpost=NULL;
-  struct curl_httppost *lastptr=NULL;
-  struct curl_slist *headerlist=NULL;
+  struct curl_httppost *formpost = NULL;
+  struct curl_slist *headerlist = NULL;
+  curl_mime *mime = NULL;
+  curl_mimepart *part = NULL;
   static const char header_buf[] = "Expect:";
   long http_response_code = 0;
 
@@ -289,40 +290,46 @@ int VtFile_scan(struct VtFile *file_scan, const char *file_path, const char *not
   DBG(1, "File to send '%s'\n", file_path);
   DBG(1, "Api Key =  '%s'\n", file_scan->api_key);
 
-  ret = curl_formadd(&formpost,
-                     &lastptr,
-                     CURLFORM_COPYNAME, "file",
-                     CURLFORM_FILE,  file_path,
-                     CURLFORM_END);
-  if (ret)
-    VT_ERROR("Adding file %s\n", file_path);
-
-  /* Fill in the filename field */
-  ret = curl_formadd(&formpost,
-                     &lastptr,
-                     CURLFORM_COPYNAME, "filename",
-                     CURLFORM_COPYCONTENTS, file_path, // FIXME
-                     CURLFORM_END);
-  if (ret)
-    VT_ERROR("Adding filename %s\n", file_path);
-
-
-  if (notify_url && notify_url[0]) {
-    ret = curl_formadd(&formpost,
-                       &lastptr,
-                       CURLFORM_COPYNAME, "notify_url",
-                       CURLFORM_COPYCONTENTS,  notify_url,
-                       CURLFORM_END);
+  mime = curl_mime_init(curl);
+  if (!mime) {
+    VT_ERROR("init curl mime\n");
+    goto cleanup;
   }
 
-  ret = curl_formadd(&formpost,
-                     &lastptr,
-                     CURLFORM_COPYNAME, "apikey",
-                     CURLFORM_COPYCONTENTS, file_scan->api_key,
-                     CURLFORM_END);
+  part = curl_mime_addpart(mime);
+  ret = curl_mime_data(part, file_path, CURL_ZERO_TERMINATED);
+  if (ret)
+    VT_ERROR("Adding file %s\n", file_path);
+  ret = curl_mime_name(part, "file");
+  if (ret)
+    VT_ERROR("Adding file multipart name %s\n", file_path);
 
+  /* Fill in the filename field */
+  part = curl_mime_addpart(mime);
+  ret = curl_mime_data(part, file_path, CURL_ZERO_TERMINATED);
+  if (ret)
+    VT_ERROR("Adding filename %s\n", file_path);
+  ret = curl_mime_name(part, "filename");
+  if (ret)
+    VT_ERROR("Adding filename multipart name %s\n", file_path);
+
+  if (notify_url && notify_url[0]) {
+    part = curl_mime_addpart(mime);
+    ret = curl_mime_data(part, notify_url, CURL_ZERO_TERMINATED);
+    if (ret)
+      VT_ERROR("Adding notify_url %s\n", notify_url);
+    ret = curl_mime_name(part, "notify_url");
+    if (ret)
+      VT_ERROR("Adding notify_url multipart name %s\n", notify_url);
+  }
+
+  part = curl_mime_addpart(mime);
+  ret = curl_mime_data(part, file_scan->api_key, CURL_ZERO_TERMINATED);
   if (ret)
     VT_ERROR("Adding key\n");
+  ret = curl_mime_name(part, "apikey");
+  if (ret)
+    VT_ERROR("Adding key multipart name\n");
 
   curl_easy_setopt(curl, CURLOPT_URL, VT_API_BASE_URL "file/scan");
 
@@ -493,12 +500,13 @@ int VtFile_rescanHash(struct VtFile *file_scan,
                       time_t rescan_date, int period, int repeat,
                       const char *notify_url, bool notify_changes_only) {
 
-  CURL *curl;
+  CURL *curl = NULL;
   CURLcode res;
   int ret = 0;
   struct curl_httppost *formpost=NULL;
-  struct curl_httppost *lastptr=NULL;
   struct curl_slist *headerlist=NULL;
+  curl_mime *mime = NULL;
+  curl_mimepart *part = NULL;
   char buff[32];
   struct tm time_result;
   static const char header_buf[] = "Expect:";
@@ -517,13 +525,19 @@ int VtFile_rescanHash(struct VtFile *file_scan,
   DBG(1, "hash to rescan'%s'\n", hash);
   DBG(1, "Api Key =  '%s'\n", file_scan->api_key);
 
-  ret = curl_formadd(&formpost,
-                     &lastptr,
-                     CURLFORM_COPYNAME, "resource",
-                     CURLFORM_COPYCONTENTS,  hash,
-                     CURLFORM_END);
+  mime = curl_mime_init(curl);
+  if (!mime) {
+    VT_ERROR("init curl mime\n");
+    goto cleanup;
+  }
+
+  part = curl_mime_addpart(mime);
+  ret = curl_mime_data(part, hash, CURL_ZERO_TERMINATED);
   if (ret)
     VT_ERROR("Adding hash %s\n", hash);
+  ret = curl_mime_name(part, "resource");
+  if (ret)
+    VT_ERROR("Adding hash multipart name %s\n", hash);
 
   if (rescan_date) {
 #ifdef WINDOWS
@@ -539,64 +553,64 @@ int VtFile_rescanHash(struct VtFile *file_scan,
 #endif
 
     ret = strftime(buff, sizeof(buff)-1, "%Y%m%d%H%M%S", &time_result);
-    ret = curl_formadd(&formpost,
-                       &lastptr,
-                       CURLFORM_COPYNAME, "date",
-                       CURLFORM_COPYCONTENTS,  buff,
-                       CURLFORM_END);
+    part = curl_mime_addpart(mime);
+    ret = curl_mime_data(part, buff, CURL_ZERO_TERMINATED);
     if (ret)
       VT_ERROR("Adding date %s\n", buff);
+    ret = curl_mime_name(part, "date");
+    if (ret)
+      VT_ERROR("Adding date multipart name %s\n", buff);
   }
 
   if (period) {
     snprintf(buff, sizeof(buff) -1, "%d", period);
-    ret = curl_formadd(&formpost,
-                       &lastptr,
-                       CURLFORM_COPYNAME, "period",
-                       CURLFORM_COPYCONTENTS,  buff,
-                       CURLFORM_END);
+    part = curl_mime_addpart(mime);
+    ret = curl_mime_data(part, buff, CURL_ZERO_TERMINATED);
     if (ret)
       VT_ERROR("Adding period %s\n", buff);
+    ret = curl_mime_name(part, "period");
+    if (ret)
+      VT_ERROR("Adding period multipart name %s\n", buff);
   }
 
   if (repeat) {
     snprintf(buff, sizeof(buff) - 1 , "%d", repeat);
-    ret = curl_formadd(&formpost,
-                       &lastptr,
-                       CURLFORM_COPYNAME, "repeat",
-                       CURLFORM_COPYCONTENTS,  buff,
-                       CURLFORM_END);
+    part = curl_mime_addpart(mime);
+    ret = curl_mime_data(part, buff, CURL_ZERO_TERMINATED);
     if (ret)
       VT_ERROR("Adding repeat %s\n", buff);
+    ret = curl_mime_name(part, "repeat");
+    if (ret)
+      VT_ERROR("Adding repeat multipart name %s\n", buff);
   }
 
   if (notify_url) {
-    ret = curl_formadd(&formpost,
-                       &lastptr,
-                       CURLFORM_COPYNAME, "notify_url",
-                       CURLFORM_COPYCONTENTS,  notify_url,
-                       CURLFORM_END);
+    part = curl_mime_addpart(mime);
+    ret = curl_mime_data(part, notify_url, CURL_ZERO_TERMINATED);
     if (ret)
       VT_ERROR("Adding notify_url %s\n", notify_url);
+    ret = curl_mime_name(part, "notify_url");
+    if (ret)
+      VT_ERROR("Adding notify_url multipart name %s\n", notify_url);
 
     if (notify_changes_only) {
-      ret = curl_formadd(&formpost,
-                         &lastptr,
-                         CURLFORM_COPYNAME, "notify_changes_only",
-                         CURLFORM_COPYCONTENTS,  "1",
-                         CURLFORM_END);
+      part = curl_mime_addpart(mime);
+      ret = curl_mime_data(part, "1", CURL_ZERO_TERMINATED);
+      if (ret)
+        VT_ERROR("Adding notify_changes_only %s\n", "1");
+      ret = curl_mime_name(part, "notify_changes_only");
+      if (ret)
+        VT_ERROR("Adding notify_changes_only multipart name %s\n", "1");
     }
   }
 
-
-  ret = curl_formadd(&formpost,
-                     &lastptr,
-                     CURLFORM_COPYNAME, "apikey",
-                     CURLFORM_COPYCONTENTS, file_scan->api_key,
-                     CURLFORM_END);
-
+  part = curl_mime_addpart(mime);
+  ret = curl_mime_data(part, file_scan->api_key, CURL_ZERO_TERMINATED);
   if (ret)
     VT_ERROR("Adding key\n");
+  ret = curl_mime_name(part, "apikey");
+  if (ret)
+    VT_ERROR("Adding apikey multipart name");
 
   curl_easy_setopt(curl, CURLOPT_URL, VT_API_BASE_URL "file/rescan");
 
@@ -650,12 +664,13 @@ cleanup:
 
 int VtFile_rescanDelete(struct VtFile *file_scan,
                         const char *hash) {
-  CURL *curl;
+  CURL *curl = NULL;
   CURLcode res;
   int ret = 0;
   struct curl_httppost *formpost=NULL;
-  struct curl_httppost *lastptr=NULL;
   struct curl_slist *headerlist=NULL;
+  curl_mime *mime = NULL;
+  curl_mimepart *part = NULL;
   static const char header_buf[] = "Expect:";
   long http_response_code = 0;
 
@@ -672,22 +687,27 @@ int VtFile_rescanDelete(struct VtFile *file_scan,
   DBG(1, "hash to rescan'%s'\n", hash);
   DBG(1, "Api Key =  '%s'\n", file_scan->api_key);
 
-  ret = curl_formadd(&formpost,
-                     &lastptr,
-                     CURLFORM_COPYNAME, "resource",
-                     CURLFORM_COPYCONTENTS,  hash,
-                     CURLFORM_END);
+  mime = curl_mime_init(curl);
+  if (!mime) {
+    VT_ERROR("init curl mime\n");
+    goto cleanup;
+  }
+
+  part = curl_mime_addpart(mime);
+  ret = curl_mime_data(part, hash, CURL_ZERO_TERMINATED);
   if (ret)
     VT_ERROR("Adding hash %s\n", hash);
+  ret = curl_mime_name(part, "resource");
+  if (ret)
+    VT_ERROR("Adding hash multipart name %s\n", hash);
 
-  ret = curl_formadd(&formpost,
-                     &lastptr,
-                     CURLFORM_COPYNAME, "apikey",
-                     CURLFORM_COPYCONTENTS, file_scan->api_key,
-                     CURLFORM_END);
-
+  part = curl_mime_addpart(mime);
+  ret = curl_mime_data(part, file_scan->api_key, CURL_ZERO_TERMINATED);
   if (ret)
     VT_ERROR("Adding key\n");
+  ret = curl_mime_name(part, "apikey");
+  if (ret)
+    VT_ERROR("Adding apikey multipart name");
 
   curl_easy_setopt(curl, CURLOPT_URL, VT_API_BASE_URL "file/rescan/delete");
 
@@ -741,12 +761,13 @@ cleanup:
 
 int VtFile_report(struct VtFile *file_scan, const char *hash) {
 
-  CURL *curl;
+  CURL *curl = NULL;
   CURLcode res;
   int ret = 0;
   struct curl_httppost *formpost=NULL;
-  struct curl_httppost *lastptr=NULL;
   struct curl_slist *headerlist=NULL;
+  curl_mime *mime = NULL;
+  curl_mimepart *part = NULL;
   static const char header_buf[] = "Expect:";
   long http_response_code = 0;
 
@@ -762,22 +783,27 @@ int VtFile_report(struct VtFile *file_scan, const char *hash) {
   DBG(1, "hash to rescan'%s'\n", hash);
   DBG(1, "Api Key =  '%s'\n", file_scan->api_key);
 
-  ret = curl_formadd(&formpost,
-                     &lastptr,
-                     CURLFORM_COPYNAME, "resource",
-                     CURLFORM_COPYCONTENTS,  hash,
-                     CURLFORM_END);
+  mime = curl_mime_init(curl);
+  if (!mime) {
+    VT_ERROR("init curl mime\n");
+    goto cleanup;
+  }
+
+  part = curl_mime_addpart(mime);
+  ret = curl_mime_data(part, hash, CURL_ZERO_TERMINATED);
   if (ret)
     VT_ERROR("Adding hash %s\n", hash);
+  ret = curl_mime_name(part, "resource");
+  if (ret)
+    VT_ERROR("Adding hash multipart name %s\n", hash);
 
-  ret = curl_formadd(&formpost,
-                     &lastptr,
-                     CURLFORM_COPYNAME, "apikey",
-                     CURLFORM_COPYCONTENTS, file_scan->api_key,
-                     CURLFORM_END);
-
+  part = curl_mime_addpart(mime);
+  ret = curl_mime_data(part, file_scan->api_key, CURL_ZERO_TERMINATED);
   if (ret)
     VT_ERROR("Adding key\n");
+  ret = curl_mime_name(part, "apikey");
+  if (ret)
+    VT_ERROR("Adding apikey multipart name");
 
   curl_easy_setopt(curl, CURLOPT_URL, VT_API_BASE_URL "file/report");
 
@@ -831,13 +857,14 @@ cleanup:
 int VtFile_search(struct VtFile *file_scan, const char *query,
                   void (*cb)(const char *resource, void *data),
                   void *user_data) {
-  CURL *curl;
+  CURL *curl = NULL;
   CURLcode res;
   int ret = 0;
   json_t *resp_json = NULL;
   struct curl_httppost *formpost=NULL;
-  struct curl_httppost *lastptr=NULL;
   struct curl_slist *headerlist=NULL;
+  curl_mime *mime = NULL;
+  curl_mimepart *part = NULL;
   static const char header_buf[] = "Expect:";
   long http_response_code = 0;
 
@@ -857,33 +884,36 @@ int VtFile_search(struct VtFile *file_scan, const char *query,
 
   DBG(1, "Api Key =  '%s'\n", file_scan->api_key);
 
-  ret = curl_formadd(&formpost,
-                     &lastptr,
-                     CURLFORM_COPYNAME, "query",
-                     CURLFORM_COPYCONTENTS,  query,
-                     CURLFORM_END);
-  if (ret)
-    VT_ERROR("Adding qury %s\n", query);
+  mime = curl_mime_init(curl);
+  if (!mime) {
+    VT_ERROR("init curl mime\n");
+    goto cleanup;
+  }
 
-  ret = curl_formadd(&formpost,
-                     &lastptr,
-                     CURLFORM_COPYNAME, "apikey",
-                     CURLFORM_COPYCONTENTS, file_scan->api_key,
-                     CURLFORM_END);
+  part = curl_mime_addpart(mime);
+  ret = curl_mime_data(part, query, CURL_ZERO_TERMINATED);
+  if (ret)
+    VT_ERROR("Adding query %s\n", query);
+  ret = curl_mime_name(part, "query");
+  if (ret)
+    VT_ERROR("Adding query multipart name %s\n", query);
+
+  part = curl_mime_addpart(mime);
+  ret = curl_mime_data(part, file_scan->api_key, CURL_ZERO_TERMINATED);
   if (ret)
     VT_ERROR("Adding key\n");
-
-
+  ret = curl_mime_name(part, "apikey");
+  if (ret)
+    VT_ERROR("Adding apikey multipart name");
 
   if (file_scan->offset) {
-    ret = curl_formadd(&formpost,
-                       &lastptr,
-                       CURLFORM_COPYNAME, "offset",
-                       CURLFORM_COPYCONTENTS, file_scan->offset,
-                       CURLFORM_END);
+    part = curl_mime_addpart(mime);
+    ret = curl_mime_data(part, file_scan->offset, CURL_ZERO_TERMINATED);
     if (ret)
       VT_ERROR("Adding offset\n");
-
+    ret = curl_mime_name(part, "offset");
+    if (ret)
+      VT_ERROR("Adding offset multipart name");
   }
 
 // 	DBG(1, "URL=%s \n", url);
@@ -1234,11 +1264,12 @@ cleanup:
 int VtFile_scanBigFile(struct VtFile *file_scan, const char * path) {
   char *url = NULL;
   int ret;
-  CURL *curl;
+  CURL *curl = NULL;
   CURLcode res;
   struct curl_httppost *formpost=NULL;
-  struct curl_httppost *lastptr=NULL;
   struct curl_slist *headerlist=NULL;
+  curl_mime *mime = NULL;
+  curl_mimepart *part = NULL;
   const char header_buf[] = "Expect:";
   long http_response_code = 0;
 
@@ -1259,20 +1290,27 @@ int VtFile_scanBigFile(struct VtFile *file_scan, const char * path) {
   DBG(1, "File to send '%s'\n", path);
   DBG(1, "Api Key =  '%s'\n", file_scan->api_key);
 
-  ret = curl_formadd(&formpost,
-                     &lastptr,
-                     CURLFORM_COPYNAME, "file",
-                     CURLFORM_FILE,  path,
-                     CURLFORM_END);
+  mime = curl_mime_init(curl);
+  if (!mime) {
+    VT_ERROR("init curl mime\n");
+    goto cleanup;
+  }
+
+  part = curl_mime_addpart(mime);
+  ret = curl_mime_data(part, path, CURL_ZERO_TERMINATED);
   if (ret)
     VT_ERROR("Adding file %s\n", path);
+  ret = curl_mime_name(part, "file");
+  if (ret)
+    VT_ERROR("Adding file multipart name %s\n", path);
 
-  /* Fill in the filename field */
-  ret = curl_formadd(&formpost,
-                     &lastptr,
-                     CURLFORM_COPYNAME, "filename",
-                     CURLFORM_COPYCONTENTS, path, // FIXME
-                     CURLFORM_END);
+  part = curl_mime_addpart(mime);
+  ret = curl_mime_data(part, path, CURL_ZERO_TERMINATED);
+  if (ret)
+    VT_ERROR("Adding filename %s\n", path);
+  ret = curl_mime_name(part, "filename");
+  if (ret)
+    VT_ERROR("Adding filename multipart name %s\n", path);
 
   curl_easy_setopt(curl, CURLOPT_URL, url);
   curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L); // download API will redirect to link
@@ -1329,4 +1367,3 @@ int VtFile_scanBigFile(struct VtFile *file_scan, const char * path) {
 
   return ret;
 }
-

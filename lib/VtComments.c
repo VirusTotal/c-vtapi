@@ -189,25 +189,28 @@ int VtComments_add(struct VtComments *vt_comments, const char *comment) {
 
   part = curl_mime_addpart(mime);
   ret = curl_mime_data(part, vt_comments->resource, CURL_ZERO_TERMINATED);
-  curl_mime_name(part, "resource");
-
   if (ret)
     VT_ERROR("Adding resource %s\n", vt_comments->resource);
+  ret = curl_mime_name(part, "resource");
+  if (ret)
+    VT_ERROR("Adding resource multipart name %s\n", vt_comments->resource);
 
   /* Fill in the filename field */
   part = curl_mime_addpart(mime);
   ret = curl_mime_data(part, comment, CURL_ZERO_TERMINATED);
-  curl_mime_name(part, "comment");
-
   if (ret)
     VT_ERROR("Adding comment %s\n", comment);
+  ret = curl_mime_name(part, "comment");
+  if (ret)
+    VT_ERROR("Adding comment multipart name %s\n", comment);
 
   part = curl_mime_addpart(mime);
   ret = curl_mime_data(part, vt_comments->api_key, CURL_ZERO_TERMINATED);
-  curl_mime_name(part, "apikey");
-
   if (ret)
     VT_ERROR("Adding key\n");
+  ret = curl_mime_name(part, "apikey");
+  if (ret)
+    VT_ERROR("Adding key multipart name\n");
 
   curl_easy_setopt(curl, CURLOPT_URL, VT_API_BASE_URL "comments/put");
 
