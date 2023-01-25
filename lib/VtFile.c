@@ -194,7 +194,7 @@ static int xferinfo(void *p,
   return 0;
 }
 
-/* for libcurl older than 7.32.0 (CURLOPT_PROGRESSFUNCTION) */
+/* for libcurl older than 7.32.0 (CURLOPT_XFERINFOFUNCTION) */
 static int older_progress(void *p,
                           double dltotal, double dlnow,
                           double ultotal, double ulnow)
@@ -227,7 +227,7 @@ void VtFile_cancelOperation(struct VtFile* file) {
 static void set_std_curl_data(struct VtFile *file, CURL *curl)
 {
 
-  curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, older_progress);
+  curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, older_progress);
   /* pass the struct pointer into the progress function */
   curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, file);
 
@@ -334,7 +334,7 @@ int VtFile_scan(struct VtFile *file_scan, const char *file_path, const char *not
   curl_easy_setopt(curl, CURLOPT_URL, VT_API_BASE_URL "file/scan");
 
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
-  curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost); // set form
+  curl_easy_setopt(curl, CURLOPT_MIMEPOST, formpost); // set form
 
   set_std_curl_data(file_scan, curl);
 
@@ -372,8 +372,7 @@ cleanup:
   /* always cleanup */
   curl_easy_cleanup(curl);
 
-  if (formpost)
-    curl_formfree(formpost);  // cleanup the formpost chain
+  curl_mime_free(mime);
 
   if (headerlist)
     curl_slist_free_all (headerlist); // free headers
@@ -448,7 +447,7 @@ int VtFile_scanMemBuf(struct VtFile *file_scan, const char *filename,  const uns
   curl_easy_setopt(curl, CURLOPT_URL, VT_API_BASE_URL "file/scan");
 
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
-  curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost); // set form
+  curl_easy_setopt(curl, CURLOPT_MIMEPOST, formpost); // set form
 
   set_std_curl_data(file_scan, curl);
 
@@ -486,8 +485,7 @@ cleanup:
   /* always cleanup */
   curl_easy_cleanup(curl);
 
-  if (formpost)
-    curl_formfree(formpost);  // cleanup the formpost chain
+  curl_mime_free(mime);
 
   if (headerlist)
     curl_slist_free_all (headerlist); // free headers
@@ -615,7 +613,7 @@ int VtFile_rescanHash(struct VtFile *file_scan,
   curl_easy_setopt(curl, CURLOPT_URL, VT_API_BASE_URL "file/rescan");
 
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
-  curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost); // set form
+  curl_easy_setopt(curl, CURLOPT_MIMEPOST, formpost); // set form
 
   set_std_curl_data(file_scan, curl);
 
@@ -653,8 +651,7 @@ cleanup:
   /* always cleanup */
   curl_easy_cleanup(curl);
 
-  if (formpost)
-    curl_formfree(formpost);  // cleanup the formpost chain
+  curl_mime_free(mime);
 
   if (headerlist)
     curl_slist_free_all (headerlist); // free headers
@@ -714,7 +711,7 @@ int VtFile_rescanDelete(struct VtFile *file_scan,
   set_std_curl_data(file_scan, curl);
 
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
-  curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost); // set form
+  curl_easy_setopt(curl, CURLOPT_MIMEPOST, formpost); // set form
 
   /* Perform the request, res will get the return code */
   res = curl_easy_perform(curl);
@@ -749,8 +746,7 @@ cleanup:
   /* always cleanup */
   curl_easy_cleanup(curl);
 
-  if (formpost)
-    curl_formfree(formpost);  // cleanup the formpost chain
+  curl_mime_free(mime);
 
   if (headerlist)
     curl_slist_free_all (headerlist); // free headers
@@ -808,7 +804,7 @@ int VtFile_report(struct VtFile *file_scan, const char *hash) {
   curl_easy_setopt(curl, CURLOPT_URL, VT_API_BASE_URL "file/report");
 
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
-  curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost); // set form
+  curl_easy_setopt(curl, CURLOPT_MIMEPOST, formpost); // set form
 
   set_std_curl_data(file_scan, curl);
 
@@ -844,8 +840,7 @@ cleanup:
   /* always cleanup */
   curl_easy_cleanup(curl);
 
-  if (formpost)
-    curl_formfree(formpost);  // cleanup the formpost chain
+  curl_mime_free(mime);
 
   if (headerlist)
     curl_slist_free_all (headerlist); // free headers
@@ -922,7 +917,7 @@ int VtFile_search(struct VtFile *file_scan, const char *query,
   set_std_curl_data(file_scan, curl);
 
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
-  curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost); // set form
+  curl_easy_setopt(curl, CURLOPT_MIMEPOST, formpost); // set form
 
   /* Perform the request, res will get the return code */
   res = curl_easy_perform(curl);
@@ -989,8 +984,7 @@ cleanup:
   /* always cleanup */
   curl_easy_cleanup(curl);
 
-  if (formpost)
-    curl_formfree(formpost);  // cleanup the formpost chain
+  curl_mime_free(mime);
 
   if (headerlist)
     curl_slist_free_all (headerlist); // free headers
@@ -1315,7 +1309,7 @@ int VtFile_scanBigFile(struct VtFile *file_scan, const char * path) {
   curl_easy_setopt(curl, CURLOPT_URL, url);
   curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L); // download API will redirect to link
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
-  curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost); // set form
+  curl_easy_setopt(curl, CURLOPT_MIMEPOST, formpost); // set form
   set_std_curl_data(file_scan, curl);
 
 
@@ -1359,8 +1353,7 @@ int VtFile_scanBigFile(struct VtFile *file_scan, const char * path) {
   if (url)
     free(url);
 
-  if (formpost)
-    curl_formfree(formpost);  // cleanup the formpost chain
+  curl_mime_free(mime);
 
   if (headerlist)
     curl_slist_free_all (headerlist); // free headers

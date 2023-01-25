@@ -220,7 +220,7 @@ int VtComments_add(struct VtComments *vt_comments, const char *comment) {
 #endif
 
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
-  curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost); // set form
+  curl_easy_setopt(curl, CURLOPT_MIMEPOST, formpost); // set form
 
   /* enable verbose for easier tracing */
   if (debug_level)
@@ -256,11 +256,10 @@ cleanup:
   /* always cleanup */
   curl_easy_cleanup(curl);
 
-  if (formpost)
-    curl_formfree(formpost);  // cleanup the formpost chain
+  curl_mime_free(mime);
 
   if (headerlist)
-    curl_slist_free_all (headerlist); // free headers
+    curl_slist_free_all(headerlist); // free headers
 
   return ret;
 }
