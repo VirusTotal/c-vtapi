@@ -1,5 +1,5 @@
-AC_INIT([VirusTotal API], [0.1], [karl.hiramoto@virustotaol.com], [c-vtapi])
-AC_PREREQ(2.61)
+AC_INIT([VirusTotal API],[0.1],[karl.hiramoto@virustotal.com],[c-vtapi])
+AC_PREREQ([2.71])
 
 AC_CONFIG_MACRO_DIR([m4])
 
@@ -7,7 +7,7 @@ dnl -Wall and -Werror here are NOT CFLAGS, they refer to automake warnings
 AM_INIT_AUTOMAKE([-Wall -Werror])
 AC_PROG_CC
 AM_PROG_AR
-AC_PROG_LIBTOOL
+LT_INIT
 AM_PROG_CC_C_O
 
 
@@ -37,7 +37,15 @@ CFLAGS="${CFLAGS} -Os -Wall -Werror -g3 "
 
 AC_LANG([C])
 # Checks for header files.
-AC_HEADER_STDC
+m4_warn([obsolete],
+[The preprocessor macro `STDC_HEADERS' is obsolete.
+  Except in unusual embedded environments, you can safely include all
+  ISO C90 headers unconditionally.])dnl
+# Autoupdate added the next two lines to ensure that your configure
+# script's behavior did not change.  They are probably safe to remove.
+AC_CHECK_INCLUDES_DEFAULT
+AC_PROG_EGREP
+
 AC_CHECK_HEADERS([string])
 
 AC_CHECK_LIB([c], [fallocate],

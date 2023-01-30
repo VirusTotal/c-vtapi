@@ -12,4 +12,3 @@ SUBDIRS = . lib $(OPT_DIRS)
 
 # ensure the distribution of the doxygen configuration file
 EXTRA_DIST = Doxygen
-
