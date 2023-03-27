@@ -159,7 +159,6 @@ int VtComments_add(struct VtComments *vt_comments, const char *comment) {
   CURLcode res;
   curl_mime *mime = NULL;
   curl_mimepart *part = NULL;
-  struct curl_httppost *formpost=NULL;
   int ret = 0;
   struct curl_slist *headerlist=NULL;
   static const char header_buf[] = "Expect:";
@@ -220,7 +219,7 @@ int VtComments_add(struct VtComments *vt_comments, const char *comment) {
 #endif
 
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
-  curl_easy_setopt(curl, CURLOPT_MIMEPOST, formpost); // set form
+  curl_easy_setopt(curl, CURLOPT_MIMEPOST, mime);
 
   /* enable verbose for easier tracing */
   if (debug_level)

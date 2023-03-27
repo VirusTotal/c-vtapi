@@ -138,7 +138,6 @@ int VtUrl_scan(struct VtUrl *vt_url, const char *url) {
   CURL *curl = NULL;
   CURLcode res;
   int ret = 0;
-  struct curl_httppost *formpost=NULL;
   struct curl_slist *headerlist=NULL;
   curl_mime *mime = NULL;
   curl_mimepart *part = NULL;
@@ -185,7 +184,7 @@ int VtUrl_scan(struct VtUrl *vt_url, const char *url) {
 #endif
 
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
-  curl_easy_setopt(curl, CURLOPT_MIMEPOST, formpost); // set form
+  curl_easy_setopt(curl, CURLOPT_MIMEPOST, mime);
 
   /* enable verbose for easier tracing */
   if (debug_level)
@@ -235,7 +234,6 @@ int VtUrl_report(struct VtUrl *vt_url, const char *resource, bool scan, bool all
   CURL *curl = NULL;
   CURLcode res;
   int ret = 0;
-  struct curl_httppost *formpost = NULL;
   struct curl_slist *headerlist = NULL;
   curl_mime *mime = NULL;
   curl_mimepart *part = NULL;
@@ -302,7 +300,7 @@ int VtUrl_report(struct VtUrl *vt_url, const char *resource, bool scan, bool all
 #endif
 
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
-  curl_easy_setopt(curl, CURLOPT_MIMEPOST, formpost); // set form
+  curl_easy_setopt(curl, CURLOPT_MIMEPOST, mime);
 
   /* enable verbose for easier tracing */
   if (debug_level)
