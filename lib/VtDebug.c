@@ -18,7 +18,7 @@ limitations under the License.
 
 #include "vtcapi_common.h"
 
-int debug_level = 1;
+int debug_level = 0;
 
 void VtDebug_setDebugLevel(int level) {
   debug_level = level;
