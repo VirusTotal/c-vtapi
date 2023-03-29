@@ -1,0 +1,10 @@
+Package: libvtapi-c
+Version: 0.1
+Architecture: amd64
+Maintainer: Aurora of Earth<auroraofearth@ya.ru>
+Installed-Size: 232
+Depends: libc6
+Section: security
+Priority: standard
+Homepage: https://github.com/VirusTotal/c-vtapi
+Description: Official VirusTotal C library
