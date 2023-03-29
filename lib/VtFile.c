@@ -269,7 +269,6 @@ int VtFile_scan(struct VtFile *file_scan, const char *file_path, const char *not
   CURL *curl = NULL;
   CURLcode res;
   int ret = 0;
-  struct curl_httppost *formpost = NULL;
   struct curl_slist *headerlist = NULL;
   curl_mime *mime = NULL;
   curl_mimepart *part = NULL;
@@ -334,7 +333,7 @@ int VtFile_scan(struct VtFile *file_scan, const char *file_path, const char *not
   curl_easy_setopt(curl, CURLOPT_URL, VT_API_BASE_URL "file/scan");
 
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
-  curl_easy_setopt(curl, CURLOPT_MIMEPOST, formpost); // set form
+  curl_easy_setopt(curl, CURLOPT_MIMEPOST, mime);
 
   set_std_curl_data(file_scan, curl);
 
@@ -388,7 +387,6 @@ int VtFile_scanMemBuf(struct VtFile *file_scan, const char *filename,  const uns
   curl_mime *mime = NULL;
   curl_mimepart *part = NULL;
   int ret = 0;
-  struct curl_httppost *formpost=NULL;
   struct curl_slist *headerlist=NULL;
   static const char header_buf[] = "Expect:";
   long http_response_code = 0;
@@ -447,7 +445,7 @@ int VtFile_scanMemBuf(struct VtFile *file_scan, const char *filename,  const uns
   curl_easy_setopt(curl, CURLOPT_URL, VT_API_BASE_URL "file/scan");
 
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
-  curl_easy_setopt(curl, CURLOPT_MIMEPOST, formpost); // set form
+  curl_easy_setopt(curl, CURLOPT_MIMEPOST, mime);
 
   set_std_curl_data(file_scan, curl);
 
@@ -501,7 +499,6 @@ int VtFile_rescanHash(struct VtFile *file_scan,
   CURL *curl = NULL;
   CURLcode res;
   int ret = 0;
-  struct curl_httppost *formpost=NULL;
   struct curl_slist *headerlist=NULL;
   curl_mime *mime = NULL;
   curl_mimepart *part = NULL;
@@ -613,7 +610,7 @@ int VtFile_rescanHash(struct VtFile *file_scan,
   curl_easy_setopt(curl, CURLOPT_URL, VT_API_BASE_URL "file/rescan");
 
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
-  curl_easy_setopt(curl, CURLOPT_MIMEPOST, formpost); // set form
+  curl_easy_setopt(curl, CURLOPT_MIMEPOST, mime);
 
   set_std_curl_data(file_scan, curl);
 
@@ -664,7 +661,6 @@ int VtFile_rescanDelete(struct VtFile *file_scan,
   CURL *curl = NULL;
   CURLcode res;
   int ret = 0;
-  struct curl_httppost *formpost=NULL;
   struct curl_slist *headerlist=NULL;
   curl_mime *mime = NULL;
   curl_mimepart *part = NULL;
@@ -711,7 +707,7 @@ int VtFile_rescanDelete(struct VtFile *file_scan,
   set_std_curl_data(file_scan, curl);
 
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
-  curl_easy_setopt(curl, CURLOPT_MIMEPOST, formpost); // set form
+  curl_easy_setopt(curl, CURLOPT_MIMEPOST, mime);
 
   /* Perform the request, res will get the return code */
   res = curl_easy_perform(curl);
@@ -760,7 +756,6 @@ int VtFile_report(struct VtFile *file_scan, const char *hash) {
   CURL *curl = NULL;
   CURLcode res;
   int ret = 0;
-  struct curl_httppost *formpost=NULL;
   struct curl_slist *headerlist=NULL;
   curl_mime *mime = NULL;
   curl_mimepart *part = NULL;
@@ -804,8 +799,7 @@ int VtFile_report(struct VtFile *file_scan, const char *hash) {
   curl_easy_setopt(curl, CURLOPT_URL, VT_API_BASE_URL "file/report");
 
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
-  curl_easy_setopt(curl, CURLOPT_MIMEPOST, formpost); // set form
-
+  curl_easy_setopt(curl, CURLOPT_MIMEPOST, mime);
   set_std_curl_data(file_scan, curl);
 
   /* Perform the request, res will get the return code */
@@ -856,7 +850,6 @@ int VtFile_search(struct VtFile *file_scan, const char *query,
   CURLcode res;
   int ret = 0;
   json_t *resp_json = NULL;
-  struct curl_httppost *formpost=NULL;
   struct curl_slist *headerlist=NULL;
   curl_mime *mime = NULL;
   curl_mimepart *part = NULL;
@@ -917,7 +910,7 @@ int VtFile_search(struct VtFile *file_scan, const char *query,
   set_std_curl_data(file_scan, curl);
 
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
-  curl_easy_setopt(curl, CURLOPT_MIMEPOST, formpost); // set form
+  curl_easy_setopt(curl, CURLOPT_MIMEPOST, mime);
 
   /* Perform the request, res will get the return code */
   res = curl_easy_perform(curl);
@@ -1260,7 +1253,6 @@ int VtFile_scanBigFile(struct VtFile *file_scan, const char * path) {
   int ret;
   CURL *curl = NULL;
   CURLcode res;
-  struct curl_httppost *formpost=NULL;
   struct curl_slist *headerlist=NULL;
   curl_mime *mime = NULL;
   curl_mimepart *part = NULL;
@@ -1309,7 +1301,7 @@ int VtFile_scanBigFile(struct VtFile *file_scan, const char * path) {
   curl_easy_setopt(curl, CURLOPT_URL, url);
   curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L); // download API will redirect to link
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
-  curl_easy_setopt(curl, CURLOPT_MIMEPOST, formpost); // set form
+  curl_easy_setopt(curl, CURLOPT_MIMEPOST, mime);
   set_std_curl_data(file_scan, curl);
 
 
